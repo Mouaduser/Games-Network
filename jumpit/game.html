@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jump It</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#f5f3ee; --ink:#141210; --mid:#9e9a93;
+      --red:#c9300a; --gold:#c4922a; --blue:#2a6090; --green:#3a7050;
+    }
+    html, body {
+      width:100%; height:100%; overflow:hidden; touch-action:none;
+      -webkit-tap-highlight-color:transparent; user-select:none;
+      background:var(--bg); font-family:'DM Sans',sans-serif;
+    }
+
+    /* ── DEAD SCREEN ── */
+    #s-dead {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:var(--bg);
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s ease;
+    }
+    #s-dead.show { opacity:1; pointer-events:all; }
+
+    .dead-h {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(56px,16vw,88px); letter-spacing:4px; color:var(--ink);
+    }
+    .lbl {
+      font-size:9px; letter-spacing:3px;
+      text-transform:uppercase; color:var(--mid); margin-bottom:3px;
+    }
+    .big {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:62px; letter-spacing:2px; color:var(--ink); line-height:1;
+    }
+    .new-rec {
+      font-size:10px; letter-spacing:3px; text-transform:uppercase;
+      color:var(--red); margin-top:4px; min-height:15px;
+    }
+    .stats-row { display:flex; gap:32px; margin-top:18px; }
+    .stat { text-align:center; }
+    .stat-v {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:36px; letter-spacing:1px; color:var(--ink);
+    }
+    .stat-l { font-size:8px; letter-spacing:2px; text-transform:uppercase; color:var(--mid); }
+    .btn-row { display:flex; gap:10px; margin-top:26px; }
+
+    .cta {
+      display:inline-block; background:var(--ink); color:var(--bg);
+      border:none; padding:15px 54px;
+      font-family:'DM Sans',sans-serif; font-weight:500;
+      font-size:12px; letter-spacing:4px; text-transform:uppercase;
+      cursor:pointer; border-radius:2px; text-decoration:none;
+      -webkit-appearance:none; transition:transform 0.1s;
+    }
+    .cta:active { transform:scale(0.94); }
+    .ghost {
+      display:inline-block; background:transparent; color:var(--ink);
+      border:1.5px solid rgba(20,18,16,0.22); padding:13px 26px;
+      font-family:'DM Sans',sans-serif; font-size:10px;
+      letter-spacing:3px; text-transform:uppercase;
+      cursor:pointer; border-radius:2px; text-decoration:none;
+      -webkit-appearance:none; transition:transform 0.1s;
+    }
+    .ghost:active { transform:scale(0.94); }
+
+    /* ── HUD ── */
+    #hud {
+      position:fixed; top:0; left:0; right:0;
+      display:flex; justify-content:space-between;
+      padding:14px 18px; pointer-events:none; z-index:5;
+    }
+    .hv {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:46px; letter-spacing:2px; color:var(--ink); line-height:1;
+    }
+    .hl { font-size:8px; letter-spacing:2px; text-transform:uppercase; color:var(--mid); }
+    .hr { text-align:right; }
+
+    /* ── TOAST ── */
+    #toast {
+      position:fixed; left:50%; top:32%;
+      transform:translateX(-50%) scale(0.8);
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(44px,13vw,68px); letter-spacing:4px; color:var(--ink);
+      pointer-events:none; z-index:20; opacity:0; white-space:nowrap;
+    }
+
+    /* ── CANVAS + TAP ZONES ── */
+    #c { position:fixed; inset:0; width:100%; height:100%; z-index:1; }
+    #tz-l, #tz-r { position:fixed; top:0; bottom:0; width:50%; z-index:6; cursor:pointer; }
+    #tz-l { left:0; } #tz-r { right:0; }
+  </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="tz-l"></div>
+<div id="tz-r"></div>
+
+<!-- HUD -->
+<div id="hud">
+    <div>
+        <div class="hv" id="hv-score">0</div>
+        <div class="hl">Height</div>
+    </div>
+    <div class="hr">
+        <div class="hv" id="hv-level">1</div>
+        <div class="hl">Level</div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- DEAD SCREEN -->
+<div id="s-dead">
+    <div class="dead-h">You fell.</div>
+    <div class="lbl" style="margin-top:22px">Height</div>
+    <div class="big" id="dd-score">0</div>
+    <div class="new-rec" id="dd-rec"></div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="dd-lv">1</div><div class="stat-l">Level</div></div>
+        <div class="stat"><div class="stat-v" id="dd-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="dd-st">0</div><div class="stat-l">Stars</div></div>
+    </div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-retry">Retry</button>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+const store = {
+  get(k, d) {
+    try { const v = localStorage.getItem('rise2_' + k); return v != null ? JSON.parse(v) : d; }
+    catch { return d; }
+  },
+  set(k, v) { try { localStorage.setItem('rise2_' + k, JSON.stringify(v)); } catch {} },
+};
+let BEST = store.get('best', 0);
+
+// ── CANVAS ───────────────────────────────────────────────────────────────────
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
+let W = 0, H = 0;
+function resize() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const GRAV = 0.44, JVEL = -14.2, JVEL_BIG = -19.5, HSPD = 5.2, HACC = 0.72;
+const PT = { N:0, MOVE:1, BREAK:2, BOUNCE:3, FADE:4 };
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let G = null, RAF = null;
+
+// ── INPUT ────────────────────────────────────────────────────────────────────
+let moveDir = 0;
+const tzL = document.getElementById('tz-l');
+const tzR = document.getElementById('tz-r');
+const touches = {};
+
+function calcDir() {
+  const d = Object.values(touches);
+  moveDir = d.length ? d[d.length - 1] : 0;
+}
+tzL.addEventListener('touchstart', e => { for (const t of e.changedTouches) touches[t.identifier] = -1; calcDir(); }, { passive:true });
+tzR.addEventListener('touchstart', e => { for (const t of e.changedTouches) touches[t.identifier] =  1; calcDir(); }, { passive:true });
+function tEnd(e) { for (const t of e.changedTouches) delete touches[t.identifier]; calcDir(); }
+tzL.addEventListener('touchend',    tEnd, { passive:true });
+tzR.addEventListener('touchend',    tEnd, { passive:true });
+tzL.addEventListener('touchcancel', tEnd, { passive:true });
+tzR.addEventListener('touchcancel', tEnd, { passive:true });
+tzL.addEventListener('mousedown', () => { moveDir = -1; });
+tzR.addEventListener('mousedown', () => { moveDir =  1; });
+window.addEventListener('mouseup', () => { moveDir = 0; });
+const K = {};
+window.addEventListener('keydown', e => { K[e.code] = true; });
+window.addEventListener('keyup',   e => { K[e.code] = false; });
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function rnd(a, b) { return a + Math.random() * (b - a); }
+
+function platW() {
+  const s = Math.floor((G ? G.score : 0) / 400) * 0.01;
+  const minW = Math.max(W * 0.10, W * 0.13 - s * W);
+  const maxW = Math.max(W * 0.14, W * 0.20 - s * W);
+  return rnd(minW, maxW);
+}
+
+function platType(score) {
+  const r = Math.random();
+  if (score < 250) return PT.N;
+  if (score < 600)  { if (r < 0.13) return PT.MOVE; if (r < 0.20) return PT.BREAK; return PT.N; }
+  if (score < 1200) { if (r < 0.18) return PT.MOVE; if (r < 0.28) return PT.BREAK; if (r < 0.33) return PT.BOUNCE; if (r < 0.38) return PT.FADE; return PT.N; }
+  if (r < 0.22) return PT.MOVE; if (r < 0.34) return PT.BREAK;
+  if (r < 0.40) return PT.BOUNCE; if (r < 0.46) return PT.FADE;
+  return PT.N;
+}
+
+function mkPlat(x, y, type, w) {
+  return {
+    x, y, w: w || platW(), h: 9, type,
+    vx: type === PT.MOVE ? (Math.random() < 0.5 ? 2.2 : -2.2) : 0,
+    broken:false, fadeAlpha:1, _fading:false, landed:false,
+  };
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function initGame() {
+  const startY = H * 0.64;
+  G = {
+    W, H, score:0, platCount:0, starCount:0,
+    level:1, tick:0, alive:true,
+    camY: startY - H * 0.55,
+    platforms:[], stars:[], particles:[],
+    nextPlatY: startY,
+    pl: { x:W/2-13, y:startY-34, vx:0, vy:0, w:26, h:34, onGround:false, sqT:0, squish:1, trail:[] },
+  };
+  G.platforms.push(mkPlat(W/2 - W*0.12, startY, PT.N, W*0.24));
+  for (let i = 0; i < 38; i++) seedPlat();
+}
+
+function seedPlat() {
+  const gap = rnd(58, 88);
+  G.nextPlatY -= gap;
+  const type = platType(G.score), w = platW(), x = rnd(0, W - w);
+  G.platforms.push(mkPlat(x, G.nextPlatY, type, w));
+  if (Math.random() < 0.22)
+    G.stars.push({ x: x + w/2 + rnd(-w*0.3, w*0.3), y: G.nextPlatY - 24, r:7, bob:rnd(0, Math.PI*2), collected:false });
+}
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+function part(x, y, n, col, vs, life, r) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = rnd(1, 3) * vs;
+    G.particles.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 1.5, life, ml:life, r:rnd(r*0.5, r), col });
+  }
+}
+function pLand(pl, big) { part(pl.x+pl.w/2, pl.y+pl.h, big?14:7, big?'#c4922a':'rgba(20,18,16,0.7)', big?1.8:1.2, big?30:18, big?4:2.5); }
+function pBreak(p)       { part(p.x+p.w/2, p.y, 10, '#c9300a', 1.5, 22, 4); }
+function pStar(x, y)     { part(x, y, 12, '#c4922a', 1.8, 26, 4); }
+function pDie(pl)        { part(pl.x+pl.w/2, pl.y+pl.h/2, 22, '#c9300a', 2, 50, 6); }
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+let _tt = null;
+function toast(txt) {
+  const el = document.getElementById('toast');
+  el.textContent = txt;
+  el.style.cssText = 'opacity:1;transform:translateX(-50%) scale(1.1);transition:none;';
+  clearTimeout(_tt);
+  _tt = setTimeout(() => {
+    el.style.cssText = 'opacity:0;transform:translateX(-50%) scale(0.82);transition:opacity 0.35s,transform 0.35s;';
+  }, 80);
+}
+
+// ── LOOP ─────────────────────────────────────────────────────────────────────
+function loop() { update(); render(); if (G && G.alive) RAF = requestAnimationFrame(loop); }
+
+// ── UPDATE ───────────────────────────────────────────────────────────────────
+function update() {
+  if (!G || !G.alive) return;
+  G.tick++;
+  const pl = G.pl;
+
+  const h = Math.floor(Math.max(0, -pl.y) / 10);
+  if (h > G.score) G.score = h;
+  const nl = Math.floor(G.score / 180) + 1;
+  if (nl !== G.level) { G.level = nl; toast('Level ' + nl); }
+
+  // Input
+  let dir = moveDir;
+  if (K['ArrowLeft'] || K['KeyA']) dir = -1;
+  if (K['ArrowRight'] || K['KeyD']) dir = 1;
+  if (dir !== 0) { pl.vx += dir * HACC; pl.vx = Math.max(-HSPD, Math.min(HSPD, pl.vx)); }
+  else { pl.vx *= 0.80; if (Math.abs(pl.vx) < 0.1) pl.vx = 0; }
+
+  // Physics
+  pl.vy += GRAV; pl.x += pl.vx; pl.y += pl.vy;
+  if (pl.x + pl.w < 0) pl.x = W;
+  if (pl.x > W)        pl.x = -pl.w;
+  if (pl.sqT > 0) { pl.sqT--; pl.squish = 1 + 0.32 * (pl.sqT / 8); } else pl.squish = 1;
+
+  // Trail
+  pl.trail.push({ x: pl.x + pl.w/2, y: pl.y + pl.h/2 });
+  if (pl.trail.length > 9) pl.trail.shift();
+
+  // Platform collision (only when falling)
+  pl.onGround = false;
+  if (pl.vy >= 0) {
+    for (const p of G.platforms) {
+      if (p.broken) continue;
+      if (p._fading && p.fadeAlpha <= 0) continue;
+      const foot = pl.y + pl.h, prev = foot - pl.vy;
+      if (pl.x + pl.w - 3 > p.x && pl.x + 3 < p.x + p.w && foot >= p.y && prev <= p.y + p.h + 2) {
+        pl.y = p.y - pl.h; pl.onGround = true; pl.sqT = 8; pl.squish = 1.38;
+        if (p.type === PT.BOUNCE) { pl.vy = JVEL_BIG; pLand(pl, true); toast('BOUNCE!'); G.score += 20; }
+        else                      { pl.vy = JVEL; G.platCount++; pLand(pl, false); }
+        if (!p.landed) {
+          p.landed = true;
+          if (p.type === PT.BREAK) setTimeout(() => { p.broken = true; pBreak(p); }, 160);
+          if (p.type === PT.FADE)  setTimeout(() => { p._fading = true; }, 200);
+        }
+        break;
+      }
+    }
+  }
+
+  // Move / fade platforms
+  for (const p of G.platforms) {
+    if (p.type === PT.MOVE) { p.x += p.vx; if (p.x <= 0 || p.x + p.w >= W) p.vx *= -1; }
+    if (p._fading) p.fadeAlpha = Math.max(0, p.fadeAlpha - 0.035);
+  }
+
+  // Stars
+  for (const s of G.stars) {
+    if (s.collected) continue;
+    s.bob += 0.06;
+    const sy = s.y + Math.sin(s.bob) * 4;
+    if (pl.x + pl.w > s.x - s.r && pl.x < s.x + s.r && pl.y + pl.h > sy - s.r && pl.y < sy + s.r) {
+      s.collected = true; G.starCount++; G.score += 35; pStar(s.x, sy); toast('+35');
+    }
+  }
+
+  // Camera — follows player up only
+  const target = pl.y - H * 0.42;
+  if (target < G.camY) G.camY += (target - G.camY) * 0.1;
+
+  // Spawn + cull
+  while (G.nextPlatY > G.camY - 80) seedPlat();
+  G.platforms = G.platforms.filter(p => p.y - G.camY < H + 80);
+  G.stars      = G.stars.filter(s => s.y - G.camY < H + 80);
+
+  // Particles
+  for (const p of G.particles) { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life--; }
+  G.particles = G.particles.filter(p => p.life > 0);
+
+  // HUD
+  document.getElementById('hv-score').textContent = G.score;
+  document.getElementById('hv-level').textContent = G.level;
+
+  // Death
+  if (pl.y - G.camY > H + 100) { pDie(pl); G.alive = false; setTimeout(showDead, 700); }
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  if (!G) return;
+  cx.clearRect(0, 0, W, H);
+
+  // Background
+  const bg = cx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#eceae4'); bg.addColorStop(1, '#f5f3ee');
+  cx.fillStyle = bg; cx.fillRect(0, 0, W, H);
+
+  // Dot grid (scrolls with camera)
+  const ds = 30, off = ((G.camY % ds) + ds) % ds;
+  cx.fillStyle = 'rgba(20,18,16,0.055)';
+  for (let gx = 0; gx < W; gx += ds)
+    for (let gy = -off; gy < H + ds; gy += ds)
+      cx.fillRect(gx, gy, 2, 2);
+
+  // Height markers
+  for (let ht = 0; ht <= G.score + 600; ht += 180) {
+    const sy = (-ht * 10) - G.camY;
+    if (sy < -10 || sy > H + 10) continue;
+    cx.strokeStyle = 'rgba(20,18,16,0.07)'; cx.lineWidth = 1; cx.setLineDash([5, 9]);
+    cx.beginPath(); cx.moveTo(0, sy); cx.lineTo(W, sy); cx.stroke(); cx.setLineDash([]);
+    cx.fillStyle = 'rgba(20,18,16,0.2)'; cx.font = '9px "DM Sans",sans-serif'; cx.textAlign = 'left';
+    cx.fillText(ht + 'm', 8, sy - 4);
+  }
+
+  // Platforms
+  for (const p of G.platforms) {
+    if (p.broken) continue;
+    const sy = p.y - G.camY;
+    if (sy < -20 || sy > H + 20) continue;
+    const a = p._fading ? p.fadeAlpha : 1;
+    let col = '#141210';
+    if (p.type === PT.MOVE)   col = '#2a6090';
+    if (p.type === PT.BREAK)  col = '#c9300a';
+    if (p.type === PT.BOUNCE) col = '#c4922a';
+    if (p.type === PT.FADE)   col = '#3a7050';
+    cx.globalAlpha = a * 0.08; cx.fillStyle = '#141210'; rrect(cx, p.x+4, sy+5, p.w, p.h, 5);
+    cx.globalAlpha = a;        cx.fillStyle = col;        rrect(cx, p.x, sy, p.w, p.h, 5);
+    cx.fillStyle = 'rgba(255,255,255,0.14)'; rrect(cx, p.x+3, sy+1.5, p.w-6, 3, 2);
+    cx.fillStyle = 'rgba(255,255,255,0.38)'; cx.font = 'bold 9px sans-serif'; cx.textAlign = 'center';
+    if (p.type === PT.MOVE)   cx.fillText('◂▸', p.x + p.w/2, sy + p.h - 1);
+    if (p.type === PT.BOUNCE) cx.fillText('↑↑',  p.x + p.w/2, sy + p.h - 1);
+    cx.globalAlpha = 1;
+  }
+
+  // Stars
+  for (const s of G.stars) {
+    if (s.collected) continue;
+    const sy = s.y + Math.sin(s.bob) * 4 - G.camY;
+    if (sy < -20 || sy > H + 20) continue;
+    cx.globalAlpha = 0.2; cx.fillStyle = '#c4922a';
+    cx.beginPath(); cx.arc(s.x, sy, s.r + 5, 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = 1; star5(cx, s.x, sy, s.r);
+  }
+
+  // Particles
+  for (const p of G.particles) {
+    cx.globalAlpha = (p.life / p.ml) * 0.85;
+    cx.fillStyle = p.col || '#141210';
+    cx.beginPath(); cx.arc(p.x, p.y - G.camY, p.r, 0, Math.PI * 2); cx.fill();
+  }
+  cx.globalAlpha = 1;
+
+  // Player trail
+  const pl = G.pl;
+  pl.trail.forEach((t, i) => {
+    const f = i / pl.trail.length;
+    cx.globalAlpha = f * 0.055;
+    const ts = 26 * (0.3 + 0.7 * f);
+    cx.fillStyle = '#141210';
+    cx.fillRect(t.x - ts/2, (t.y - ts/2) - G.camY, ts, ts * 1.3);
+  });
+  cx.globalAlpha = 1;
+
+  // Player
+  const sq = pl.squish, sw = pl.w * (2 - sq), sh = pl.h * sq;
+  const px = pl.x - (sw - pl.w) / 2, py = pl.y + (pl.h - sh) - G.camY;
+
+  // Drop shadow toward nearest platform below
+  let nearPY = py + sh + 180;
+  for (const p of G.platforms) {
+    const scy = p.y - G.camY;
+    if (scy > py + sh && scy < nearPY && !p.broken && pl.x + pl.w > p.x && pl.x < p.x + p.w) nearPY = scy;
+  }
+  const shdist = Math.min(nearPY - (py + sh), 180);
+  cx.globalAlpha = 0.10 * (1 - shdist / 180);
+  cx.fillStyle = '#141210'; cx.fillRect(pl.x + 5, nearPY, pl.w - 10, 3);
+  cx.globalAlpha = 1;
+
+  // Body
+  cx.fillStyle = '#141210'; cx.fillRect(px, py, sw, sh);
+  // Face
+  cx.fillStyle = '#f5f3ee'; cx.fillRect(px + sw*0.1, py + sh*0.07, sw*0.8, sh*0.54);
+  // Eyes
+  const blink = (G.tick % 80 < 3);
+  cx.fillStyle = '#141210';
+  if (!blink) {
+    const eyeH = sh * (pl.vy < -2 ? 0.08 : 0.15);
+    cx.fillRect(px + sw*0.18, py + sh*0.17, sw*0.24, eyeH);
+    cx.fillRect(px + sw*0.55, py + sh*0.17, sw*0.24, eyeH);
+  } else {
+    cx.fillRect(px + sw*0.18, py + sh*0.25, sw*0.24, sh*0.03);
+    cx.fillRect(px + sw*0.55, py + sh*0.25, sw*0.24, sh*0.03);
+  }
+  // Mouth
+  cx.strokeStyle = '#141210'; cx.lineWidth = 1.8;
+  if      (pl.vy < -3) { cx.beginPath(); cx.arc(px + sw*0.5, py + sh*0.49, sw*0.15, 0, Math.PI*2); cx.stroke(); }
+  else if (pl.vy >  3) { cx.beginPath(); cx.arc(px + sw*0.5, py + sh*0.63, sw*0.17, Math.PI, Math.PI*2); cx.stroke(); }
+  else                 { cx.beginPath(); cx.arc(px + sw*0.5, py + sh*0.44, sw*0.17, 0.1, Math.PI-0.1); cx.stroke(); }
+  // Legs
+  cx.fillStyle = '#28221e';
+  if (pl.onGround && Math.abs(pl.vx) > 0.8) {
+    const lp = G.tick * 0.28;
+    cx.fillRect(px + sw*0.12, py + sh, sw*0.28, Math.abs(Math.sin(lp)) * 10 + 5);
+    cx.fillRect(px + sw*0.54, py + sh, sw*0.28, Math.abs(Math.sin(lp + Math.PI)) * 10 + 5);
+  } else {
+    cx.fillRect(px + sw*0.12, py + sh, sw*0.28, pl.onGround ? 8 : 5);
+    cx.fillRect(px + sw*0.54, py + sh, sw*0.28, pl.onGround ? 8 : 5);
+  }
+
+  // Tap hints
+  cx.globalAlpha = 0.05; cx.fillStyle = '#141210'; cx.font = 'bold 26px sans-serif'; cx.textAlign = 'center';
+  cx.fillText('◂', W * 0.12, H - 20); cx.fillText('▸', W * 0.88, H - 20);
+  cx.globalAlpha = 1;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function rrect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x+r, y); c.lineTo(x+w-r, y); c.arcTo(x+w, y, x+w, y+r, r);
+  c.lineTo(x+w, y+h-r); c.arcTo(x+w, y+h, x+w-r, y+h, r);
+  c.lineTo(x+r, y+h); c.arcTo(x, y+h, x, y+h-r, r);
+  c.lineTo(x, y+r); c.arcTo(x, y, x+r, y, r);
+  c.closePath(); c.fill();
+}
+function star5(c, cx2, cy2, r) {
+  c.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = i * Math.PI / 5 - Math.PI / 2, rad = i % 2 === 0 ? r : r * 0.42;
+    i === 0 ? c.moveTo(cx2 + Math.cos(a)*rad, cy2 + Math.sin(a)*rad)
+            : c.lineTo(cx2 + Math.cos(a)*rad, cy2 + Math.sin(a)*rad);
+  }
+  c.closePath(); c.fillStyle = '#c4922a'; c.fill();
+}
+
+// ── DEAD SCREEN ──────────────────────────────────────────────────────────────
+function showDead() {
+  const sc = G.score;
+  document.getElementById('dd-score').textContent = sc;
+  document.getElementById('dd-lv').textContent    = G.level;
+  document.getElementById('dd-pl').textContent    = G.platCount;
+  document.getElementById('dd-st').textContent    = G.starCount;
+  const isNew = sc > BEST;
+  if (isNew) { BEST = sc; store.set('best', sc); }
+  document.getElementById('dd-rec').textContent = isNew ? '✦ New Record!' : '';
+  document.getElementById('s-dead').classList.add('show');
+}
+
+// ── START / RETRY ─────────────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('s-dead').classList.remove('show');
+  Object.keys(touches).forEach(k => delete touches[k]);
+  moveDir = 0;
+  cancelAnimationFrame(RAF);
+  initGame();
+  RAF = requestAnimationFrame(loop);
+}
+
+document.getElementById('btn-retry').addEventListener('click', startGame);
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+
+// Start immediately on load
+startGame();
+</script>
+</body>
+</html>
