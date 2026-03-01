@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,31 +7,31 @@
   <!-- ═══════════════════════════════════════
        SEO META TAGS
   ═══════════════════════════════════════ -->
-  <title>Games Network – Dein Gaming-Portal | Browser Games & Online Spiele</title>
-  <meta name="description" content="Games Network: Entdecke hunderte kostenlose Browser-Games und Online-Spiele. Action, Arcade, Racing und mehr – direkt spielen ohne Download." />
-  <meta name="keywords" content="Games Network, Browser Games, Online Spiele, kostenlose Spiele, Arcade Games, Action Games, Gaming Portal, PC Spiele, Mobile Games" />
+  <title>Games Network – Your Gaming Portal | Browser Games & Online Games</title>
+  <meta name="description" content="Games Network: Discover hundreds of free browser games and online games. Action, Arcade, Racing and more – play instantly, no download required." />
+  <meta name="keywords" content="Games Network, Browser Games, Online Games, Free Games, Arcade Games, Action Games, Gaming Portal, PC Games, Mobile Games" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="author" content="Games Network" />
-  <meta name="language" content="de" />
-  <link rel="canonical" href="https://gamesnetwork.de/" />
+  <meta name="language" content="en" />
+  <link rel="canonical" href="https://gamesnetwork.gg/" />
 
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="Games Network" />
-  <meta property="og:title"       content="Games Network – Dein Gaming-Portal" />
-  <meta property="og:description" content="Hunderte kostenlose Browser-Games & Online-Spiele. Jetzt direkt spielen – kein Download nötig." />
-  <meta property="og:url"         content="https://gamesnetwork.de/" />
-  <meta property="og:image"       content="https://gamesnetwork.de/og-image.jpg" />
+  <meta property="og:title"       content="Games Network – Your Gaming Portal" />
+  <meta property="og:description" content="Hundreds of free browser games & online games. Play instantly – no download needed." />
+  <meta property="og:url"         content="https://gamesnetwork.gg/" />
+  <meta property="og:image"       content="https://gamesnetwork.gg/og-image.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height"content="630" />
-  <meta property="og:locale"      content="de_DE" />
+  <meta property="og:locale"      content="en_US" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:site"        content="@GamesNetwork" />
-  <meta name="twitter:title"       content="Games Network – Dein Gaming-Portal" />
-  <meta name="twitter:description" content="Hunderte kostenlose Browser-Games & Online-Spiele. Jetzt direkt spielen." />
-  <meta name="twitter:image"       content="https://gamesnetwork.de/og-image.jpg" />
+  <meta name="twitter:title"       content="Games Network – Your Gaming Portal" />
+  <meta name="twitter:description" content="Hundreds of free browser games & online games. Play instantly, no download needed." />
+  <meta name="twitter:image"       content="https://gamesnetwork.gg/og-image.jpg" />
 
   <!-- JSON-LD: WebSite + SearchAction -->
   <script type="application/ld+json">
@@ -40,14 +40,14 @@
     "@type": "WebSite",
     "name": "Games Network",
     "alternateName": "GN",
-    "url": "https://gamesnetwork.de",
-    "description": "Kostenlose Browser-Games und Online-Spiele Portal",
-    "inLanguage": "de",
+    "url": "https://gamesnetwork.gg",
+    "description": "Free browser games and online games portal",
+    "inLanguage": "en",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://gamesnetwork.de/search?q={search_term_string}"
+        "urlTemplate": "https://gamesnetwork.gg/search?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
@@ -464,7 +464,7 @@
        HEADER
   ══════════════════════════════ -->
   <header role="banner">
-    <a href="/" class="logo" aria-label="Games Network – Startseite">
+    <a href="/" class="logo" aria-label="Games Network – Back to Homepage">
       <div class="logo-hex" aria-hidden="true">GN</div>
       <div class="logo-text">
         <span class="logo-name">Games Network</span>
@@ -473,14 +473,13 @@
     </a>
 
     <div class="nav-right">
-      <nav role="navigation" aria-label="Hauptnavigation">
-        <a href="#games" class="active">Spiele</a>
+      <nav role="navigation" aria-label="Main Navigation">
+        <a href="#games" class="active">Games</a>
         <a href="#">Community</a>
         <a href="#">News</a>
       </nav>
-      <button id="theme-toggle" aria-label="Theme wechseln">
-        <span id="theme-icon">☀️</span>
-        <span id="theme-label">Hell</span>
+      <button id="theme-toggle" aria-label="Toggle theme">
+        <span id="theme-label">Light Mode</span>
       </button>
     </div>
   </header>
@@ -490,22 +489,22 @@
   ══════════════════════════════ -->
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-eyebrow" aria-hidden="true">Games Network</div>
-    <h1 id="hero-heading">Willkommen zurück,<br><em>Spieler</em></h1>
+    <h1 id="hero-heading">Welcome back,<br><em>Player</em></h1>
     <p class="hero-sub">
-      Entdecke hunderte kostenlose Browser-Games – direkt im Browser spielen, kein Download nötig.
+      Discover hundreds of free browser games – play instantly in your browser, no download needed.
     </p>
   </section>
 
   <!-- ══════════════════════════════
        FILTER
   ══════════════════════════════ -->
-  <div class="toolbar" role="group" aria-label="Spielfilter" id="filterBar"></div>
+  <div class="toolbar" role="group" aria-label="Game Filters" id="filterBar"></div>
 
   <!-- ══════════════════════════════
        GAMES
   ══════════════════════════════ -->
   <main id="games">
-    <div class="game-grid" id="gameGrid" role="list" aria-label="Spielekatalog"></div>
+    <div class="game-grid" id="gameGrid" role="list" aria-label="Game Catalog"></div>
   </main>
 
   <!-- ══════════════════════════════
@@ -515,12 +514,12 @@
     <div class="footer-brand">
       <span>© 2025</span>
       <strong>Games Network</strong>
-      <span>– Alle Rechte vorbehalten</span>
+      <span>– All rights reserved</span>
     </div>
     <ul class="footer-links">
-      <li><a href="#">Datenschutz</a></li>
-      <li><a href="#">Impressum</a></li>
-      <li><a href="#">Kontakt</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Imprint</a></li>
+      <li><a href="#">Contact</a></li>
     </ul>
   </footer>
 
@@ -530,7 +529,7 @@
   <script>
     // ─────────────────────────────────────
     // GAME DATA
-    // Bilder sollten 516×516 px sein.
+    // Images should be 516×516 px.
     // badge: "" | "new" | "hot" | "top"
     // ─────────────────────────────────────
     const games = [
@@ -562,13 +561,13 @@
         url:   "games/speed.html",
         badge: "top"
       },
-      // ── Neues Spiel hinzufügen: ──
+      // ── Add a new game below: ──
       /*
       {
-        title: "Spielname",
-        img:   "ordner/bild-516x516.png",
+        title: "Game Title",
+        img:   "folder/image-516x516.png",
         genre: "Adventure",
-        url:   "ordner/index.html",
+        url:   "folder/index.html",
         badge: ""
       },
       */
@@ -578,15 +577,13 @@
     // THEME
     // ─────────────────────────────────────
     const toggleBtn  = document.getElementById('theme-toggle');
-    const themeIcon  = document.getElementById('theme-icon');
     const themeLabel = document.getElementById('theme-label');
     const html       = document.documentElement;
 
     const applyTheme = (t) => {
       html.setAttribute('data-theme', t);
       localStorage.setItem('gn-theme', t);
-      themeIcon.textContent  = t === 'dark' ? '☀️' : '🌙';
-      themeLabel.textContent = t === 'dark' ? 'Hell' : 'Dunkel';
+      themeLabel.textContent = t === 'dark' ? 'Light Mode' : 'Dark Mode';
     };
 
     applyTheme(localStorage.getItem('gn-theme') || 'dark');
@@ -598,12 +595,12 @@
     // FILTER CHIPS
     // ─────────────────────────────────────
     const filterBar  = document.getElementById('filterBar');
-    const genres     = ['Alle', ...new Set(games.map(g => g.genre))];
-    let   active     = 'Alle';
+    const genres     = ['All', ...new Set(games.map(g => g.genre))];
+    let   active     = 'All';
 
     genres.forEach(genre => {
       const btn = document.createElement('button');
-      btn.className  = `filter-chip${genre === 'Alle' ? ' active' : ''}`;
+      btn.className  = `filter-chip${genre === 'All' ? ' active' : ''}`;
       btn.textContent = genre;
       btn.setAttribute('aria-label', `Filter: ${genre}`);
       btn.addEventListener('click', () => {
@@ -622,11 +619,11 @@
     const SVG_PLAY = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`;
 
     function renderGames() {
-      const list = active === 'Alle' ? games : games.filter(g => g.genre === active);
+      const list = active === 'All' ? games : games.filter(g => g.genre === active);
       grid.innerHTML = '';
 
       if (!list.length) {
-        grid.innerHTML = `<div class="empty-state" role="status">Keine Spiele in dieser Kategorie.</div>`;
+        grid.innerHTML = `<div class="empty-state" role="status">No games found in this category.</div>`;
         return;
       }
 
@@ -641,7 +638,7 @@
           <div class="img-container">
             <img
               src="${game.img}"
-              alt="${game.title} – ${game.genre} Spielvorschau"
+              alt="${game.title} – ${game.genre} game preview"
               class="game-img"
               width="516"
               height="516"
@@ -655,7 +652,7 @@
           <div class="game-info">
             <p class="game-genre">${game.genre}</p>
             <h2 class="game-title">${game.title}</h2>
-            <a href="${game.url}" class="btn-play" aria-label="${game.title} spielen">Jetzt spielen</a>
+            <a href="${game.url}" class="btn-play" aria-label="Play ${game.title}">Play Now</a>
           </div>`;
 
         grid.appendChild(card);
@@ -665,14 +662,14 @@
       document.getElementById('gamesJsonLd').textContent = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ItemList",
-        "name": "Spielekatalog – Games Network",
+        "name": "Game Catalog – Games Network",
         "numberOfItems": list.length,
         "itemListElement": list.map((g, idx) => ({
           "@type":    "ListItem",
           "position": idx + 1,
           "name":     g.title,
-          "url":      `https://gamesnetwork.de/${g.url}`,
-          "image":    g.img.startsWith('http') ? g.img : `https://gamesnetwork.de/${g.img}`
+          "url":      `https://gamesnetwork.gg/${g.url}`,
+          "image":    g.img.startsWith('http') ? g.img : `https://gamesnetwork.gg/${g.img}`
         }))
       });
     }
