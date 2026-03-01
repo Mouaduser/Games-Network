@@ -1,2 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jump It</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 
-jumpitindex
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#f5f3ee; --ink:#141210; --mid:#9e9a93; --red:#c9300a; --gold:#c4922a;
+    }
+    html, body {
+      width:100%; height:100%; background:var(--bg);
+      font-family:'DM Sans',sans-serif;
+      -webkit-tap-highlight-color:transparent; user-select:none;
+      overflow-y:auto;
+    }
+    .page {
+      min-height:100%;
+      display:flex; flex-direction:column;
+      align-items:center; padding:40px 24px 32px;
+    }
+
+    /* HEADER */
+    .logo {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(64px,18vw,105px);
+      letter-spacing:8px; color:var(--ink); line-height:1;
+    }
+    .logo-sub {
+      font-size:10px; letter-spacing:5px;
+      text-transform:uppercase; color:var(--mid); margin-top:6px;
+    }
+    .rule { width:32px; height:1.5px; background:var(--ink); margin:22px 0; }
+
+    /* BEST SCORE */
+    .score-row { display:flex; gap:36px; margin-bottom:28px; }
+    .sc { text-align:center; }
+    .sc-v {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:44px; letter-spacing:2px; color:var(--ink); line-height:1;
+    }
+    .sc-l { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--mid); }
+    .streak { font-size:11px; letter-spacing:1px; color:var(--red); margin-bottom:24px; min-height:16px; }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size:9px; letter-spacing:4px; text-transform:uppercase;
+      color:var(--mid); margin-bottom:14px; align-self:flex-start;
+    }
+
+    /* QUICK PLAY */
+    .quick-play {
+      width:100%; max-width:340px;
+      background:var(--ink); color:var(--bg);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 22px; border-radius:3px; text-decoration:none;
+      margin-bottom:28px;
+      transition:transform 0.1s;
+    }
+    .quick-play:active { transform:scale(0.97); }
+    .qp-label {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:28px; letter-spacing:3px;
+    }
+    .qp-sub { font-size:9px; letter-spacing:2px; text-transform:uppercase; opacity:0.6; }
+    .qp-arrow { font-size:22px; opacity:0.7; }
+
+    /* LEVEL GRID */
+    .level-grid {
+      width:100%; max-width:340px;
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:10px; margin-bottom:28px;
+    }
+
+    .level-card {
+      position:relative;
+      border:1.5px solid rgba(20,18,16,0.14);
+      border-radius:4px; padding:16px 14px;
+      text-decoration:none; color:var(--ink);
+      background:var(--bg);
+      transition:transform 0.1s, border-color 0.15s;
+      cursor:pointer;
+      overflow:hidden;
+    }
+    .level-card:active { transform:scale(0.96); }
+    .level-card.done   { border-color:rgba(20,18,16,0.25); background:#faf8f3; }
+
+    .level-card.locked {
+      opacity:0.45; cursor:default; pointer-events:none;
+    }
+
+    .level-num {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:32px; letter-spacing:2px; color:var(--ink); line-height:1;
+    }
+    .level-name {
+      font-size:9px; letter-spacing:1px; text-transform:uppercase;
+      color:var(--mid); margin-top:2px; line-height:1.4;
+    }
+    .level-status {
+      font-size:8px; letter-spacing:2px; text-transform:uppercase;
+      margin-top:8px;
+    }
+    .status-done    { color:#3a7a3a; }
+    .status-play    { color:var(--ink); }
+    .status-locked  { color:var(--mid); }
+
+    /* checkmark badge */
+    .done-badge {
+      position:absolute; top:10px; right:10px;
+      width:18px; height:18px; border-radius:50%;
+      background:#3a7a3a;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; color:#fff;
+    }
+    /* lock icon */
+    .lock-icon {
+      position:absolute; top:10px; right:10px;
+      font-size:14px; opacity:0.4;
+    }
+
+    /* FOOTER */
+    .footer {
+      margin-top:auto; padding-top:24px;
+      display:flex; gap:20px; align-items:center;
+    }
+    .pp {
+      font-size:9px; letter-spacing:2px; color:var(--mid);
+      text-transform:uppercase; text-decoration:none; opacity:0.6;
+    }
+    .pp:hover { opacity:1; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- LOGO -->
+    <div class="logo">JUMP IT</div>
+    <div class="logo-sub">Vertical Jumper</div>
+    <div class="rule"></div>
+
+    <!-- SCORES -->
+    <div class="score-row">
+        <div class="sc">
+            <div class="sc-v" id="best-score">0</div>
+            <div class="sc-l">Best Height</div>
+        </div>
+        <div class="sc">
+            <div class="sc-v" id="levels-done">0</div>
+            <div class="sc-l">Levels Done</div>
+        </div>
+    </div>
+    <div class="streak" id="streak"></div>
+
+    <!-- QUICK PLAY (= endless mode / game.html) -->
+    <div class="section-title">Endless Mode</div>
+    <a class="quick-play" href="game.html">
+        <div>
+            <div class="qp-label">Quick Play</div>
+            <div class="qp-sub">Endless • No goal</div>
+        </div>
+        <div class="qp-arrow">→</div>
+    </a>
+
+    <!-- LEVEL SELECT -->
+    <div class="section-title">Story Levels</div>
+    <div class="level-grid" id="level-grid">
+        <!-- built by JS -->
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <a class="pp" href="pp.txt">Privacy Policy</a>
+    </div>
+
+</div>
+
+<script>
+    'use strict';
+
+    const store = {
+      get(k, d) {
+        try { const v = localStorage.getItem('ji_' + k); return v != null ? JSON.parse(v) : d; }
+        catch { return d; }
+      },
+      set(k, v) { try { localStorage.setItem('ji_' + k, JSON.stringify(v)); } catch {} },
+    };
+
+    // ── STREAK ────────────────────────────────────────────────────────────────
+    let streak = store.get('streak', 0);
+    const today = new Date().toDateString();
+    const yest  = new Date(Date.now() - 86400000).toDateString();
+    const lp    = store.get('lp', '');
+    if      (lp === today) {}
+    else if (lp === yest)  { streak++; store.set('streak', streak); }
+    else                   { streak = 1; store.set('streak', streak); }
+    store.set('lp', today);
+    if (streak > 1) document.getElementById('streak').textContent = '🔥 ' + streak + ' day streak';
+
+    // ── BEST SCORE (from endless mode) ───────────────────────────────────────
+    document.getElementById('best-score').textContent = store.get('lv1_best', 0) || store.get('best', 0);
+
+    // ── LEVEL DEFINITIONS ────────────────────────────────────────────────────
+    // Each level defines:
+    //   file        → filename to link to
+    //   name        → short display name
+    //   unlockKey   → localStorage key that must be true to play
+    //   doneKey     → localStorage key set to true when completed
+    const LEVELS = [
+      { num:1,  file:'level1.html',  name:'Start The Adventure',   unlockKey:null,           doneKey:'lv2_unlocked' },
+      { num:2,  file:'level2.html',  name:'Moving Ground',   unlockKey:'lv2_unlocked', doneKey:'lv3_unlocked' },
+      { num:3,  file:'level3.html',  name:'Glass Floor',     unlockKey:'lv3_unlocked', doneKey:'lv4_unlocked' },
+      { num:4,  file:'level4.html',  name:'Bouncer',         unlockKey:'lv4_unlocked', doneKey:'lv5_unlocked' },
+      { num:5,  file:'level5.html',  name:'Crumble Zone',    unlockKey:'lv5_unlocked', doneKey:'lv6_unlocked' },
+      { num:6,  file:'level6.html',  name:'Night City',      unlockKey:'lv6_unlocked', doneKey:'lv7_unlocked' },
+      { num:7,  file:'level7.html',  name:'Ice World',       unlockKey:'lv7_unlocked', doneKey:'lv8_unlocked' },
+      { num:8,  file:'level8.html',  name:'Desert Heat',     unlockKey:'lv8_unlocked', doneKey:'lv9_unlocked' },
+      { num:9,  file:'level9.html',  name:'Space Station',   unlockKey:'lv9_unlocked', doneKey:'lv10_unlocked' },
+      { num:10, file:'level10.html', name:'Storm',           unlockKey:'lv10_unlocked',doneKey:'lv11_unlocked' },
+      { num:11, file:'level11.html', name:'Tiny Platforms',  unlockKey:'lv11_unlocked',doneKey:'lv12_unlocked' },
+      { num:12, file:'level12.html', name:'Mega Bounce',     unlockKey:'lv12_unlocked',doneKey:'lv13_unlocked' },
+      { num:13, file:'level13.html', name:'Mirror World',    unlockKey:'lv13_unlocked',doneKey:'lv14_unlocked' },
+      { num:14, file:'level14.html', name:'Fog',             unlockKey:'lv14_unlocked',doneKey:'lv15_unlocked' },
+      { num:15, file:'level15.html', name:'Underwater',      unlockKey:'lv15_unlocked',doneKey:'lv16_unlocked' },
+      { num:16, file:'level16.html', name:'Earthquake',      unlockKey:'lv16_unlocked',doneKey:'lv17_unlocked' },
+      { num:17, file:'level17.html', name:'Speed Run',       unlockKey:'lv17_unlocked',doneKey:'lv18_unlocked' },
+      { num:18, file:'level18.html', name:'Darkness',        unlockKey:'lv18_unlocked',doneKey:'lv19_unlocked' },
+      { num:19, file:'level19.html', name:'Rainbow',         unlockKey:'lv19_unlocked',doneKey:'lv20_unlocked' },
+      { num:20, file:'level20.html', name:'The Gauntlet',    unlockKey:'lv20_unlocked',doneKey:null },
+    ];
+
+    // ── BUILD GRID ───────────────────────────────────────────────────────────
+    const grid = document.getElementById('level-grid');
+    let doneCount = 0;
+
+    LEVELS.forEach(lv => {
+      const unlocked = lv.unlockKey === null || store.get(lv.unlockKey, false);
+      const done     = lv.doneKey && store.get(lv.doneKey, false);
+      if (done) doneCount++;
+
+      const card = document.createElement(unlocked ? 'a' : 'div');
+      if (unlocked) card.href = lv.file;
+
+      card.className = 'level-card' +
+        (done ? ' done' : '') +
+        (unlocked ? '' : ' locked');
+
+      card.innerHTML = `
+        <div class="level-num">${String(lv.num).padStart(2,'0')}</div>
+        <div class="level-name">${lv.name}</div>
+        <div class="level-status ${done ? 'status-done' : unlocked ? 'status-play' : 'status-locked'}">
+          ${done ? '✓ Done' : unlocked ? 'Play →' : 'Locked'}
+        </div>
+        ${done     ? '<div class="done-badge">✓</div>' : ''}
+        ${!unlocked ? '<div class="lock-icon">🔒</div>' : ''}
+      `;
+      grid.appendChild(card);
+    });
+
+    document.getElementById('levels-done').textContent = doneCount;
+  </script>
+</body>
+</html>
