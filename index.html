@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Gaming | Dark Mode Toggle</title>
+    <title>Aurora Gaming | Fixed Icons</title>
     <style>
         /* CSS Variables */
         :root {
@@ -14,6 +14,7 @@
             --text: #212529;
             --text-muted: #6c757d;
             --border: #e0e0e0;
+            --img-bg: #ffffff; /* Hintergrund für Icons, falls sie nicht quadratisch sind */
         }
 
         /* Dark Mode Colors */
@@ -24,6 +25,7 @@
             --text: #ffffff;
             --text-muted: #a0a0a0;
             --border: #333333;
+            --img-bg: #252525;
         }
 
         body {
@@ -70,7 +72,6 @@
             font-weight: 500;
         }
 
-        /* Themed Toggle Button */
         #theme-toggle {
             background: var(--text);
             color: var(--bg);
@@ -83,14 +84,9 @@
             transition: all 0.3s;
         }
 
-        #theme-toggle:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
-
         .hero {
             text-align: center;
-            padding: 80px 20px;
+            padding: 60px 20px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -98,8 +94,9 @@
 
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
+            justify-items: center;
         }
 
         .game-card {
@@ -108,23 +105,43 @@
             overflow: hidden;
             border: 1px solid var(--border);
             transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .game-card:hover { transform: translateY(-5px); }
-        .game-img { width: 100%; height: 180px; object-fit: cover; }
-        .game-info { padding: 20px; }
-        .game-title { margin: 0 0 5px 0; color: var(--text); }
-        .game-genre { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 15px; }
+
+        /* FIXED 516x516 ICON STYLING */
+        .game-img { 
+            width: 516px; 
+            height: 516px; 
+            /* 'contain' stellt sicher, dass nichts abgeschnitten wird */
+            object-fit: contain; 
+            background-color: var(--img-bg);
+            display: block;
+            max-width: 100%; 
+        }
+
+        .game-info { 
+            padding: 20px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-title { margin: 0 0 5px 0; color: var(--text); font-size: 1.4rem; }
+        .game-genre { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; }
 
         .btn-play {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             width: 100%;
             cursor: pointer;
             font-weight: bold;
+            font-size: 1rem;
         }
 
         footer {
@@ -142,7 +159,7 @@
         <div class="logo">Aurora</div>
         <div class="nav-container">
             <nav>
-                <a href="#">Store</a>
+                <a href="jumpit/index.html">Store</a>
                 <a href="#">Community</a>
             </nav>
             <button id="theme-toggle">Dark Mode</button>
@@ -151,7 +168,7 @@
 
     <section class="hero">
         <h1>Unlock New Worlds</h1>
-        <p>Premium gaming experiences at your fingertips.</p>
+        <p>Your premium gaming library.</p>
     </section>
 
     <div class="container">
@@ -164,16 +181,16 @@
 
     <script>
         const games = [
-            { title: "Cyber Neon", img: "jumpit/Icon.png", genre: "RPG" },
-            { title: "Galactic Wars", img: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=500", genre: "Action" },
-            { title: "Shadow Assassin", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=500", genre: "Stealth" },
-            { title: "Speed Demon", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500", genre: "Racing" }
+            { title: "Jump IT", img: "jumpit/Icon.png", genre: "Arcade / Action" },
+            { title: "Galactic Wars", img: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=800", genre: "Action" },
+            { title: "Shadow Assassin", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800", genre: "Stealth" },
+            { title: "Speed Demon", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800", genre: "Racing" }
         ];
 
+        // Theme Logic
         const toggleBtn = document.getElementById('theme-toggle');
         const currentTheme = localStorage.getItem('theme') || 'light';
 
-        // Apply theme and update button text on load
         if (currentTheme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             toggleBtn.textContent = 'Light Mode';
@@ -181,7 +198,6 @@
 
         toggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
-            
             if (theme === 'dark') {
                 document.documentElement.removeAttribute('data-theme');
                 localStorage.setItem('theme', 'light');
