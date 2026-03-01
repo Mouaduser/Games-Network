@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jump It — Level 16</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#1a1208; --ink:#f0e0c0; --mid:#907040;
+      --plat:#6a4820; --platlt:#c08040; --gold:#c4922a; --red:#ff4020;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;background:var(--bg);font-family:'DM Sans',sans-serif;}
+    .overlay{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);opacity:0;pointer-events:none;transition:opacity 0.4s;padding:24px;}
+    .overlay.show{opacity:1;pointer-events:all;}
+    .screen-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,14vw,80px);letter-spacing:4px;color:var(--ink);text-align:center;}
+    .screen-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-top:6px;text-align:center;}
+    .lbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-bottom:3px;margin-top:20px;}
+    .big{font-family:'Bebas Neue',sans-serif;font-size:62px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .new-rec{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-top:4px;min-height:15px;}
+    .stats-row{display:flex;gap:28px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+    .stat{text-align:center;}
+    .stat-v{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:var(--ink);}
+    .stat-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;justify-content:center;}
+    .cta{display:inline-block;background:var(--plat);color:var(--ink);border:none;padding:14px 40px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px;letter-spacing:4px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .cta:active{transform:scale(0.94);}
+    .cta.next{background:var(--platlt);color:#fff;}
+    .ghost{display:inline-block;background:transparent;color:var(--ink);border:1.5px solid rgba(240,224,192,0.2);padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .ghost:active{transform:scale(0.94);}
+    .level-badge{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--platlt);border:1px solid var(--platlt);padding:4px 12px;border-radius:2px;margin-bottom:16px;}
+    .win-stars{font-size:32px;letter-spacing:8px;margin:12px 0 4px;}
+    .unlock-msg{margin-top:16px;padding:12px 20px;background:rgba(106,72,32,0.15);border:1px solid rgba(192,128,64,0.3);font-size:10px;letter-spacing:2px;color:var(--platlt);text-transform:uppercase;text-align:center;border-radius:2px;}
+    #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px 16px;pointer-events:none;z-index:5;}
+    .hv{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .hl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .hr{text-align:right;}
+    /* Earthquake countdown bar */
+    #quake-bar{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(240,224,192,0.06);z-index:6;}
+    #quake-fill{height:4px;background:var(--platlt);width:100%;transition:none;}
+    #quake-label{position:fixed;top:70px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--platlt);pointer-events:none;z-index:5;white-space:nowrap;opacity:0;transition:opacity 0.2s;}
+    #quake-label.warn{opacity:1;color:var(--red);}
+    #goal-bar{position:fixed;bottom:0;left:0;right:0;height:4px;background:rgba(240,224,192,0.06);z-index:5;}
+    #goal-fill{height:4px;background:var(--platlt);width:0%;transition:width 0.3s;}
+    #goal-label{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);pointer-events:none;z-index:5;white-space:nowrap;}
+    #tip{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:var(--ink);background:rgba(26,18,8,0.96);border:1px solid rgba(192,128,64,0.3);padding:10px 18px;border-radius:3px;pointer-events:none;z-index:15;text-align:center;opacity:0;transition:opacity 0.4s;max-width:88vw;}
+    #tip.on{opacity:1;}
+    #toast{position:fixed;left:50%;top:30%;transform:translateX(-50%) scale(0.8);font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,60px);letter-spacing:4px;color:var(--red);pointer-events:none;z-index:20;opacity:0;white-space:nowrap;text-shadow:0 0 20px rgba(255,64,32,0.7);}
+    #c{position:fixed;inset:0;width:100%;height:100%;z-index:1;}
+    #tz-l,#tz-r{position:fixed;top:0;bottom:0;width:50%;z-index:6;cursor:pointer;}
+    #tz-l{left:0;}#tz-r{right:0;}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="tz-l"></div><div id="tz-r"></div>
+<div id="hud">
+    <div><div class="hv" id="hv-score">0</div><div class="hl">Height</div></div>
+    <div class="hr"><div class="hv" id="hv-goal">—</div><div class="hl">Goal</div></div>
+</div>
+<div id="quake-bar"><div id="quake-fill"></div></div>
+<div id="quake-label">⚠ QUAKE INCOMING</div>
+<div id="goal-bar"><div id="goal-fill"></div></div>
+<div id="goal-label">Reach 17000m — hold on tight!</div>
+<div id="tip"></div><div id="toast"></div>
+
+<div class="overlay" id="s-dead">
+    <div class="level-badge">Level 16 — Earthquake</div>
+    <div class="screen-title">Shaken off.</div>
+    <div class="screen-sub">Quakes shift platforms every 5s — brace yourself!</div>
+    <div class="lbl">Height reached</div>
+    <div class="big" id="dd-score">0</div>
+    <div class="new-rec" id="dd-rec"></div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="dd-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="dd-st">0</div><div class="stat-l">Stars</div></div>
+        <div class="stat"><div class="stat-v" id="dd-q">0</div><div class="stat-l">Quakes</div></div>
+    </div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-retry">Try Again</button>
+    </div>
+</div>
+
+<div class="overlay" id="s-win">
+    <div class="level-badge">Level 16 — Complete!</div>
+    <div class="screen-title">Unshakeable!</div>
+    <div class="win-stars" id="win-stars">★★★</div>
+    <div class="lbl">Final Height</div>
+    <div class="big" id="wn-score">0</div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="wn-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="wn-st">0</div><div class="stat-l">Stars</div></div>
+        <div class="stat"><div class="stat-v" id="wn-time">0</div><div class="stat-l">Seconds</div></div>
+    </div>
+    <div class="unlock-msg">🔓 Level 17 unlocked!</div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-replay">Play Again</button>
+        <a class="cta next" href="level17.html">Level 17 →</a>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+const GOAL           = 17000;
+const QUAKE_INTERVAL = 5 * 60;   // ticks between quakes (5 seconds @ 60fps)
+const QUAKE_WARN     = 90;        // ticks of warning before quake
+const QUAKE_MAG      = 12;        // screen shake magnitude (px)
+const PLAT_SHIFT     = 30;        // max px platforms shift on quake
+
+const store={get(k,d){try{const v=localStorage.getItem('ji_'+k);return v!=null?JSON.parse(v):d;}catch{return d;}},set(k,v){try{localStorage.setItem('ji_'+k,JSON.stringify(v));}catch{}}};
+let BEST=store.get('lv16_best',0);
+
+const cv=document.getElementById('c'), cx=cv.getContext('2d');
+let W=0,H=0;
+function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+resize(); window.addEventListener('resize',resize);
+
+const GRAV=0.44, JVEL=-14.2, HSPD=5.2, HACC=0.70;
+
+let G=null,RAF=null,moveDir=0;
+const touches={};
+const tzL=document.getElementById('tz-l'), tzR=document.getElementById('tz-r');
+function calcDir(){const d=Object.values(touches);moveDir=d.length?d[d.length-1]:0;}
+tzL.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=-1;calcDir();},{passive:true});
+tzR.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=+1;calcDir();},{passive:true});
+function tEnd(e){for(const t of e.changedTouches)delete touches[t.identifier];calcDir();}
+tzL.addEventListener('touchend',tEnd,{passive:true}); tzR.addEventListener('touchend',tEnd,{passive:true});
+tzL.addEventListener('touchcancel',tEnd,{passive:true}); tzR.addEventListener('touchcancel',tEnd,{passive:true});
+tzL.addEventListener('mousedown',()=>{moveDir=-1;}); tzR.addEventListener('mousedown',()=>{moveDir=+1;});
+window.addEventListener('mouseup',()=>{moveDir=0;});
+const K={};
+window.addEventListener('keydown',e=>{K[e.code]=true;}); window.addEventListener('keyup',e=>{K[e.code]=false;});
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+// ── BACKGROUND CRACKS ──────────────────────────────────────────────────────
+// Accumulate crack lines in background after each quake
+const CRACKS=[];
+function addCracks(){
+  for(let i=0;i<6;i++){
+    const sx=Math.random()*W, sy=Math.random()*H;
+    const segs=[];
+    let cx2=sx,cy2=sy;
+    for(let s=0;s<8;s++){
+      cx2+=rnd(-40,40); cy2+=rnd(-30,30);
+      segs.push({x:cx2,y:cy2});
+    }
+    CRACKS.push({sx,sy,segs,alpha:rnd(0.08,0.20)});
+  }
+  if(CRACKS.length>60) CRACKS.splice(0,6);
+}
+
+// ── DUST PARTICLES spawned on quake ─────────────────────────────────────────
+// Stored separately from G.particles so they survive between frames during shake
+let quakeTick=0;  // counts up to QUAKE_INTERVAL
+let shakeX=0,shakeY=0,shakeMag=0;
+let quakeCount=0;
+
+function rndSign(){return Math.random()<0.5?1:-1;}
+
+function platW(){
+  const sh=Math.min(0.03,(G?G.score:0)/170000);
+  return rnd(Math.max(W*0.10,W*0.13-sh*W),Math.max(W*0.14,W*0.19-sh*W));
+}
+function mkPlat(x,y,w){
+  return {x,y,w:w||platW(),h:10,landed:false,
+    targetX:null, // for smooth shift animation
+    shifting:0,   // frames of shift animation remaining
+  };
+}
+
+// ── TIPS ──────────────────────────────────────────────────────────────────────
+const TIPS=[
+  {atScore:0,   text:'Earthquake! Every 5s platforms shift and the screen shakes!'},
+  {atScore:25,  text:'The bar at top counts down to the next quake'},
+  {atScore:120, text:'Watch for the WARNING flash — platforms are about to move!'},
+  {atScore:500, text:'Land on platforms before they shift for a safe position'},
+  {atScore:2000,text:'You are reading the tremors — unstoppable!'},
+];
+const shownTips=new Set(); let tipTimer=null;
+function checkTips(score){TIPS.forEach((tip,i)=>{if(shownTips.has(i)||score<tip.atScore)return;shownTips.add(i);showTip(tip.text);});}
+function showTip(text){const el=document.getElementById('tip');el.textContent=text;el.classList.add('on');clearTimeout(tipTimer);tipTimer=setTimeout(()=>el.classList.remove('on'),3400);}
+
+function updateQuakeHUD(){
+  const pct=1-(quakeTick/QUAKE_INTERVAL);
+  document.getElementById('quake-fill').style.width=(pct*100)+'%';
+  const warn=quakeTick>QUAKE_INTERVAL-QUAKE_WARN;
+  const lbl=document.getElementById('quake-label');
+  if(warn){
+    lbl.classList.add('warn');
+    lbl.style.opacity=(G&&G.tick%16<8)?'1':'0.3';
+  } else {
+    lbl.classList.remove('warn');
+    lbl.style.opacity='0';
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function initGame(){
+  shownTips.clear();
+  quakeTick=0; quakeCount=0; shakeX=0; shakeY=0; shakeMag=0;
+  CRACKS.length=0;
+  const startY=H*0.65;
+  G={W,H,score:0,platCount:0,starCount:0,tick:0,alive:true,won:false,
+    camY:startY-H*0.55,platforms:[],stars:[],particles:[],nextPlatY:startY,
+    pl:{x:W/2-13,y:startY-36,vx:0,vy:0,w:26,h:34,onGround:false,sqT:0,squish:1,trail:[]}};
+  G.platforms.push(mkPlat(W/2-W*0.14,startY,W*0.28));
+  for(let i=0;i<44;i++)seedPlat();
+}
+
+function seedPlat(){
+  G.nextPlatY-=rnd(52,80);
+  const w=platW(),x=rnd(0,W-w);
+  G.platforms.push(mkPlat(x,G.nextPlatY,w));
+  if(Math.random()<0.26)
+    G.stars.push({x:x+w/2+rnd(-w*0.2,w*0.2),y:G.nextPlatY-24,r:7,bob:rnd(0,Math.PI*2),collected:false});
+}
+
+// ── QUAKE EVENT ────────────────────────────────────────────────────────────────
+function triggerQuake(){
+  quakeCount++;
+  shakeMag=QUAKE_MAG;
+
+  // Shift all visible platforms by ±PLAT_SHIFT
+  G.platforms.forEach(p=>{
+    const shift=rndSign()*rnd(8,PLAT_SHIFT);
+    p.targetX=Math.max(0,Math.min(W-p.w, p.x+shift));
+    p.shifting=18; // frames to animate
+  });
+
+  // Spawn dust particles
+  for(let i=0;i<20;i++){
+    const x=Math.random()*W, y=Math.random()*H;
+    G.particles.push({x,y,vx:rnd(-2,2),vy:rnd(-3,0),life:40,ml:40,r:rnd(2,5),col:'rgba(160,120,60,0.6)',type:'dust'});
+  }
+
+  // Add background cracks
+  addCracks();
+
+  // Flash toast
+  toast('QUAKE!');
+}
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+function part(x,y,n,col,vs,life,r){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,s=rnd(1,3)*vs;
+    G.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life,ml:life,r:rnd(r*0.5,r),col,type:'dot'});
+  }
+}
+function pLand(pl){part(pl.x+pl.w/2,pl.y+pl.h,6,'rgba(160,120,60,0.6)',1.2,18,2.5);}
+function pStar(x,y){part(x,y,12,'#c4922a',1.8,26,4);}
+function pDie(pl){part(pl.x+pl.w/2,pl.y+pl.h/2,18,'#ff4020',2.0,45,5);}
+function pWin(pl){part(pl.x+pl.w/2,pl.y+pl.h/2,28,'#c08040',2.4,60,5);}
+
+let _tt=null;
+function toast(txt){const el=document.getElementById('toast');el.textContent=txt;el.style.cssText='opacity:1;transform:translateX(-50%) scale(1.1);transition:none;';clearTimeout(_tt);_tt=setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(-50%) scale(0.82);transition:opacity 0.3s,transform 0.3s;';},txt==='QUAKE!'?600:80);}
+
+function loop(){update();render();if(G&&G.alive)RAF=requestAnimationFrame(loop);}
+
+// ── UPDATE ───────────────────────────────────────────────────────────────────
+function update(){
+  if(!G||!G.alive)return;
+  G.tick++;
+  const pl=G.pl;
+
+  // Quake timer
+  quakeTick++;
+  if(quakeTick>=QUAKE_INTERVAL){
+    quakeTick=0;
+    triggerQuake();
+  }
+  updateQuakeHUD();
+
+  // Screen shake decay
+  if(shakeMag>0.4){
+    shakeX=(Math.random()-0.5)*shakeMag*2;
+    shakeY=(Math.random()-0.5)*shakeMag*2;
+    shakeMag*=0.78;
+  } else {shakeX=0;shakeY=0;shakeMag=0;}
+
+  const h=Math.floor(Math.max(0,-pl.y)/10);
+  if(h>G.score)G.score=h;
+  document.getElementById('goal-fill').style.width=Math.min(100,(G.score/GOAL)*100)+'%';
+  document.getElementById('hv-score').textContent=G.score;
+  document.getElementById('hv-goal').textContent=GOAL+'m';
+  checkTips(G.score);
+
+  if(G.score>=GOAL&&!G.won){G.won=true;pWin(pl);setTimeout(showWin,600);}
+
+  let dir=moveDir;
+  if(K['ArrowLeft']||K['KeyA'])dir=-1;
+  if(K['ArrowRight']||K['KeyD'])dir=+1;
+  if(dir!==0){pl.vx+=dir*HACC;pl.vx=Math.max(-HSPD,Math.min(HSPD,pl.vx));}
+  else{pl.vx*=0.80;if(Math.abs(pl.vx)<0.1)pl.vx=0;}
+
+  pl.vy+=GRAV; pl.x+=pl.vx; pl.y+=pl.vy;
+  if(pl.x+pl.w<0)pl.x=W; if(pl.x>W)pl.x=-pl.w;
+  if(pl.sqT>0){pl.sqT--;pl.squish=1+0.32*(pl.sqT/8);}else pl.squish=1;
+  pl.trail.push({x:pl.x+pl.w/2,y:pl.y+pl.h/2});
+  if(pl.trail.length>9)pl.trail.shift();
+
+  // Animate platform shifts
+  G.platforms.forEach(p=>{
+    if(p.shifting>0 && p.targetX!==null){
+      p.x+=(p.targetX-p.x)*0.25;
+      p.shifting--;
+      if(p.shifting===0) p.x=p.targetX;
+    }
+  });
+
+  pl.onGround=false;
+  if(pl.vy>=0){
+    for(const p of G.platforms){
+      const foot=pl.y+pl.h,prev=foot-pl.vy;
+      if(pl.x+pl.w-3>p.x&&pl.x+3<p.x+p.w&&foot>=p.y&&prev<=p.y+p.h+2){
+        pl.y=p.y-pl.h;pl.onGround=true;pl.sqT=8;pl.squish=1.38;
+        pl.vy=JVEL;
+        if(!p.landed){p.landed=true;G.platCount++;pLand(pl);}
+        break;
+      }
+    }
+  }
+
+  for(const s of G.stars){
+    if(s.collected)continue;
+    s.bob+=0.06;
+    const sy=s.y+Math.sin(s.bob)*4;
+    if(pl.x+pl.w>s.x-s.r&&pl.x<s.x+s.r&&pl.y+pl.h>sy-s.r&&pl.y<sy+s.r){
+      s.collected=true;G.starCount++;G.score+=25;pStar(s.x,sy);toast('+25');
+    }
+  }
+
+  const target=pl.y-H*0.42;
+  if(target<G.camY)G.camY+=(target-G.camY)*0.1;
+
+  while(G.nextPlatY>G.camY-80)seedPlat();
+  G.platforms=G.platforms.filter(p=>p.y-G.camY<H+80);
+  G.stars=G.stars.filter(s=>s.y-G.camY<H+80);
+
+  for(const p of G.particles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.14;p.life--;}
+  G.particles=G.particles.filter(p=>p.life>0);
+
+  if(pl.y-G.camY>H+100&&!G.won){pDie(pl);G.alive=false;setTimeout(showDead,700);}
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  if(!G)return;
+  cx.clearRect(0,0,W,H);
+
+  // Apply screen shake via canvas translation
+  cx.save();
+  cx.translate(shakeX, shakeY);
+
+  // Warm earthy brown sky
+  const t=Math.min(1,G.score/17000);
+  const bg=cx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,lerpCol('#0e0c06','#1a1208',t));
+  bg.addColorStop(1,lerpCol('#1a1208','#241a08',t));
+  cx.fillStyle=bg; cx.fillRect(-20,-20,W+40,H+40); // fill slightly beyond to hide shake edges
+
+  // Background crack network
+  drawCracks();
+
+  // Dust haze (warm brown overlay that pulses during quake)
+  if(shakeMag>0.5){
+    const dustAlpha=Math.min(0.18,shakeMag/QUAKE_MAG*0.18);
+    cx.fillStyle=`rgba(160,100,40,${dustAlpha})`;
+    cx.fillRect(-20,-20,W+40,H+40);
+  }
+
+  // Dot grid
+  const ds=30,off=((G.camY%ds)+ds)%ds;
+  cx.fillStyle='rgba(240,224,192,0.025)';
+  for(let gx=0;gx<W;gx+=ds)
+    for(let gy=-off;gy<H+ds;gy+=ds)
+      cx.fillRect(gx,gy,2,2);
+
+  // Height markers
+  for(let ht=0;ht<=GOAL+1000;ht+=1000){
+    const sy=(-ht*10)-G.camY;
+    if(sy<-10||sy>H+10)continue;
+    const isGoal=ht===GOAL;
+    cx.strokeStyle=isGoal?'rgba(192,128,64,0.5)':'rgba(240,224,192,0.04)';
+    cx.lineWidth=isGoal?1.5:1;cx.setLineDash(isGoal?[]:[4,10]);
+    cx.beginPath();cx.moveTo(0,sy);cx.lineTo(W,sy);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=isGoal?'rgba(192,128,64,0.7)':'rgba(240,224,192,0.12)';
+    cx.font=isGoal?'bold 10px DM Sans,sans-serif':'9px DM Sans,sans-serif';
+    cx.textAlign='left';cx.fillText(isGoal?'GOAL 17000m':ht+'m',8,sy-4);
+  }
+
+  // Platforms — cracked stone look, shake on quake
+  for(const p of G.platforms){
+    const sy=p.y-G.camY;
+    if(sy<-24||sy>H+24)continue;
+    const isShifting=p.shifting>0;
+
+    // Extra glow when shifting
+    if(isShifting){
+      cx.globalAlpha=0.20;cx.fillStyle='#ff8040';
+      rrect(cx,p.x-4,sy-3,p.w+8,p.h+6,7);
+    }
+
+    cx.globalAlpha=0.12;cx.fillStyle='#000';
+    rrect(cx,p.x+2,sy+5,p.w,p.h,5);
+
+    cx.globalAlpha=1;cx.fillStyle='#6a4820';
+    rrect(cx,p.x,sy,p.w,p.h,5);
+
+    cx.fillStyle='#9a6830';
+    rrect(cx,p.x+1,sy,p.w-2,p.h*0.45,4);
+
+    cx.fillStyle='rgba(255,220,140,0.20)';
+    rrect(cx,p.x+3,sy+1,p.w-6,2.5,2);
+
+    // Crack texture on platform
+    cx.strokeStyle='rgba(40,20,0,0.35)';cx.lineWidth=0.7;cx.setLineDash([2,5]);
+    cx.beginPath();cx.moveTo(p.x+p.w*0.3,sy);cx.lineTo(p.x+p.w*0.25,sy+p.h);cx.stroke();
+    cx.beginPath();cx.moveTo(p.x+p.w*0.65,sy+p.h);cx.lineTo(p.x+p.w*0.70,sy);cx.stroke();
+    cx.setLineDash([]);
+    cx.globalAlpha=1;
+  }
+
+  // Stars
+  for(const s of G.stars){
+    if(s.collected)continue;
+    const sy=s.y+Math.sin(s.bob)*4-G.camY;
+    if(sy<-20||sy>H+20)continue;
+    cx.globalAlpha=0.18;cx.fillStyle='#c4922a';
+    cx.beginPath();cx.arc(s.x,sy,s.r+5,0,Math.PI*2);cx.fill();
+    cx.globalAlpha=1;star5(cx,s.x,sy,s.r);
+  }
+
+  // Particles
+  for(const p of G.particles){
+    cx.globalAlpha=(p.life/p.ml)*0.82;
+    cx.fillStyle=p.col||'#c08040';
+    cx.beginPath();cx.arc(p.x,p.y-G.camY,p.r,0,Math.PI*2);cx.fill();
+  }
+  cx.globalAlpha=1;
+
+  drawPlayer();
+
+  cx.globalAlpha=0.07;cx.fillStyle='#f0e0c0';
+  cx.font='bold 24px sans-serif';cx.textAlign='center';
+  cx.fillText('◂',W*0.1,H-22);cx.fillText('▸',W*0.9,H-22);
+  cx.globalAlpha=1;
+
+  cx.restore(); // end shake transform
+}
+
+// ── BACKGROUND CRACKS ─────────────────────────────────────────────────────────
+function drawCracks(){
+  CRACKS.forEach(crack=>{
+    cx.globalAlpha=crack.alpha;
+    cx.strokeStyle='rgba(255,180,80,0.8)';
+    cx.lineWidth=0.8;
+    cx.beginPath();
+    cx.moveTo(crack.sx,crack.sy-G.camY*0.02);
+    crack.segs.forEach(s=>cx.lineTo(s.x,s.y-G.camY*0.02));
+    cx.stroke();
+    // Inner glow on fresh cracks
+    cx.strokeStyle='rgba(255,120,20,0.3)';cx.lineWidth=2;
+    cx.beginPath();
+    cx.moveTo(crack.sx,crack.sy-G.camY*0.02);
+    crack.segs.forEach(s=>cx.lineTo(s.x,s.y-G.camY*0.02));
+    cx.stroke();
+  });
+  cx.globalAlpha=1;
+}
+
+// ── PLAYER ───────────────────────────────────────────────────────────────────
+function drawPlayer(){
+  const pl=G.pl;
+  pl.trail.forEach((t,i)=>{
+    const f=i/pl.trail.length;
+    cx.globalAlpha=f*0.06;
+    const ts=26*(0.3+0.7*f);
+    cx.fillStyle='#c08040';
+    cx.fillRect(t.x-ts/2,(t.y-ts/2)-G.camY,ts,ts*1.3);
+  });
+  cx.globalAlpha=1;
+
+  const sq=pl.squish,sw=pl.w*(2-sq),sh=pl.h*sq;
+  const px=pl.x-(sw-pl.w)/2,py=pl.y+(pl.h-sh)-G.camY;
+
+  let nearPY=py+sh+180;
+  for(const p of G.platforms){
+    const scy=p.y-G.camY;
+    if(scy>py+sh&&scy<nearPY&&pl.x+pl.w>p.x&&pl.x<p.x+p.w)nearPY=scy;
+  }
+  const shdist=Math.min(nearPY-(py+sh),180);
+  cx.globalAlpha=0.12*(1-shdist/180);
+  cx.fillStyle='#6a4820';cx.fillRect(pl.x+5,nearPY,pl.w-10,3);
+  cx.globalAlpha=1;
+
+  // Body — earthy brown
+  cx.fillStyle='#1a1208';cx.fillRect(px,py,sw,sh);
+  cx.fillStyle='#f0e0c0';cx.fillRect(px+sw*0.1,py+sh*0.07,sw*0.8,sh*0.54);
+
+  // Worried expression — quake-aware
+  const blink=(G.tick%80<3);cx.fillStyle='#1a1208';
+  if(!blink){
+    const eyeH=sh*(pl.vy<-2?0.08:0.14);
+    cx.fillRect(px+sw*0.18,py+sh*0.17,sw*0.24,eyeH);
+    cx.fillRect(px+sw*0.55,py+sh*0.17,sw*0.24,eyeH);
+    // Worried brows angled inward
+    cx.save();
+    cx.translate(px+sw*0.30,py+sh*0.10);cx.rotate(-0.2);
+    cx.fillRect(-sw*0.13,0,sw*0.26,sh*0.04);cx.restore();
+    cx.save();
+    cx.translate(px+sw*0.67,py+sh*0.10);cx.rotate(0.2);
+    cx.fillRect(-sw*0.13,0,sw*0.26,sh*0.04);cx.restore();
+  } else {
+    cx.fillRect(px+sw*0.18,py+sh*0.25,sw*0.24,sh*0.03);
+    cx.fillRect(px+sw*0.55,py+sh*0.25,sw*0.24,sh*0.03);
+  }
+
+  // Gritted teeth / straight worried mouth
+  cx.strokeStyle='#1a1208';cx.lineWidth=1.8;
+  cx.beginPath();cx.moveTo(px+sw*0.28,py+sh*0.50);cx.lineTo(px+sw*0.72,py+sh*0.50);cx.stroke();
+  // Teeth lines
+  cx.strokeStyle='rgba(26,18,8,0.3)';cx.lineWidth=0.8;
+  for(let ti=1;ti<4;ti++){
+    const tx=px+sw*(0.28+ti*0.11);
+    cx.beginPath();cx.moveTo(tx,py+sh*0.47);cx.lineTo(tx,py+sh*0.53);cx.stroke();
+  }
+
+  cx.fillStyle='#0e0c06';
+  if(pl.onGround&&Math.abs(pl.vx)>0.8){
+    const lp=G.tick*0.28;
+    cx.fillRect(px+sw*0.12,py+sh,sw*0.28,Math.abs(Math.sin(lp))*10+5);
+    cx.fillRect(px+sw*0.54,py+sh,sw*0.28,Math.abs(Math.sin(lp+Math.PI))*10+5);
+  } else {
+    cx.fillRect(px+sw*0.12,py+sh,sw*0.28,pl.onGround?8:5);
+    cx.fillRect(px+sw*0.54,py+sh,sw*0.28,pl.onGround?8:5);
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();c.fill();}
+function star5(c,cx2,cy2,r){c.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rad=i%2===0?r:r*0.42;i===0?c.moveTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad):c.lineTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad);}c.closePath();c.fillStyle='#c4922a';c.fill();}
+function lerpCol(a,b,t){const ah=a.replace('#',''),bh=b.replace('#','');const ar=parseInt(ah.slice(0,2),16),ag=parseInt(ah.slice(2,4),16),ab=parseInt(ah.slice(4,6),16);const br=parseInt(bh.slice(0,2),16),bg2=parseInt(bh.slice(2,4),16),bb=parseInt(bh.slice(4,6),16);return '#'+[ar+(br-ar)*t,ag+(bg2-ag)*t,ab+(bb-ab)*t].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');}
+
+// ── SCREENS ──────────────────────────────────────────────────────────────────
+function showDead(){
+  document.getElementById('dd-score').textContent=G.score;
+  document.getElementById('dd-pl').textContent=G.platCount;
+  document.getElementById('dd-st').textContent=G.starCount;
+  document.getElementById('dd-q').textContent=quakeCount;
+  const isNew=G.score>BEST;
+  if(isNew){BEST=G.score;store.set('lv16_best',G.score);}
+  document.getElementById('dd-rec').textContent=isNew?'✦ New Best!':'';
+  document.getElementById('s-dead').classList.add('show');
+}
+function showWin(){
+  G.alive=false;cancelAnimationFrame(RAF);
+  const sc=G.score,secs=Math.floor(G.tick/60),stars=secs<140?3:secs<290?2:1;
+  document.getElementById('wn-score').textContent=sc;
+  document.getElementById('wn-pl').textContent=G.platCount;
+  document.getElementById('wn-st').textContent=G.starCount;
+  document.getElementById('wn-time').textContent=secs;
+  document.getElementById('win-stars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+  if(sc>BEST){BEST=sc;store.set('lv16_best',sc);}
+  store.set('lv17_unlocked',true);
+  document.getElementById('s-win').classList.add('show');
+}
+function startGame(){
+  document.getElementById('s-dead').classList.remove('show');
+  document.getElementById('s-win').classList.remove('show');
+  document.getElementById('tip').classList.remove('on');
+  Object.keys(touches).forEach(k=>delete touches[k]);
+  moveDir=0;cancelAnimationFrame(RAF);initGame();RAF=requestAnimationFrame(loop);
+}
+document.getElementById('btn-retry').addEventListener('click',startGame);
+document.getElementById('btn-replay').addEventListener('click',startGame);
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+startGame();
+</script>
+</body>
+</html>

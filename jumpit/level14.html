@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jump It — Level 14</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#e8edf4; --ink:#1a2030; --mid:#7080a0;
+      --plat:#3a5070; --platlt:#6080a8; --fog:#d0d8e8;
+      --gold:#c4922a; --red:#c9300a;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;background:var(--bg);font-family:'DM Sans',sans-serif;}
+    .overlay{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);opacity:0;pointer-events:none;transition:opacity 0.4s ease;padding:24px;}
+    .overlay.show{opacity:1;pointer-events:all;}
+    .screen-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,14vw,80px);letter-spacing:4px;color:var(--ink);text-align:center;}
+    .screen-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-top:6px;text-align:center;}
+    .lbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-bottom:3px;margin-top:20px;}
+    .big{font-family:'Bebas Neue',sans-serif;font-size:62px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .new-rec{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-top:4px;min-height:15px;}
+    .stats-row{display:flex;gap:28px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+    .stat{text-align:center;}
+    .stat-v{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:var(--ink);}
+    .stat-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;justify-content:center;}
+    .cta{display:inline-block;background:var(--plat);color:#fff;border:none;padding:14px 40px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px;letter-spacing:4px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .cta:active{transform:scale(0.94);}
+    .cta.next{background:var(--platlt);}
+    .ghost{display:inline-block;background:transparent;color:var(--ink);border:1.5px solid rgba(26,32,48,0.2);padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .ghost:active{transform:scale(0.94);}
+    .level-badge{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--platlt);border:1px solid var(--platlt);padding:4px 12px;border-radius:2px;margin-bottom:16px;}
+    .win-stars{font-size:32px;letter-spacing:8px;margin:12px 0 4px;}
+    .unlock-msg{margin-top:16px;padding:12px 20px;background:rgba(58,80,112,0.08);border:1px solid rgba(58,80,112,0.28);font-size:10px;letter-spacing:2px;color:var(--platlt);text-transform:uppercase;text-align:center;border-radius:2px;}
+    #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px 16px;pointer-events:none;z-index:5;}
+    .hv{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .hl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .hr{text-align:right;}
+    #goal-bar{position:fixed;bottom:0;left:0;right:0;height:4px;background:rgba(26,32,48,0.08);z-index:5;}
+    #goal-fill{height:4px;background:var(--plat);width:0%;transition:width 0.3s;}
+    #goal-label{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);pointer-events:none;z-index:5;white-space:nowrap;}
+    #tip{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:var(--ink);background:rgba(232,237,244,0.97);border:1px solid rgba(58,80,112,0.25);padding:10px 18px;border-radius:3px;pointer-events:none;z-index:15;text-align:center;opacity:0;transition:opacity 0.4s;max-width:88vw;}
+    #tip.on{opacity:1;}
+    #toast{position:fixed;left:50%;top:30%;transform:translateX(-50%) scale(0.8);font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,60px);letter-spacing:4px;color:var(--ink);pointer-events:none;z-index:20;opacity:0;white-space:nowrap;}
+    #c{position:fixed;inset:0;width:100%;height:100%;z-index:1;}
+    #tz-l,#tz-r{position:fixed;top:0;bottom:0;width:50%;z-index:6;cursor:pointer;}
+    #tz-l{left:0;}#tz-r{right:0;}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="tz-l"></div>
+<div id="tz-r"></div>
+<div id="hud">
+    <div><div class="hv" id="hv-score">0</div><div class="hl">Height</div></div>
+    <div class="hr"><div class="hv" id="hv-goal">—</div><div class="hl">Goal</div></div>
+</div>
+<div id="goal-bar"><div id="goal-fill"></div></div>
+<div id="goal-label">Reach 15000m — feel your way through the fog!</div>
+<div id="tip"></div>
+<div id="toast"></div>
+
+<div class="overlay" id="s-dead">
+    <div class="level-badge">Level 14 — Fog</div>
+    <div class="screen-title">Lost in fog.</div>
+    <div class="screen-sub">Platforms appear only 80px away — trust your instincts!</div>
+    <div class="lbl">Height reached</div>
+    <div class="big" id="dd-score">0</div>
+    <div class="new-rec" id="dd-rec"></div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="dd-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="dd-st">0</div><div class="stat-l">Stars</div></div>
+    </div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-retry">Try Again</button>
+    </div>
+</div>
+
+<div class="overlay" id="s-win">
+    <div class="level-badge">Level 14 — Complete!</div>
+    <div class="screen-title">The fog lifts!</div>
+    <div class="win-stars" id="win-stars">★★★</div>
+    <div class="lbl">Final Height</div>
+    <div class="big" id="wn-score">0</div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="wn-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="wn-st">0</div><div class="stat-l">Stars</div></div>
+        <div class="stat"><div class="stat-v" id="wn-time">0</div><div class="stat-l">Seconds</div></div>
+    </div>
+    <div class="unlock-msg">🔓 Level 15 unlocked!</div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-replay">Play Again</button>
+        <a class="cta next" href="level15.html">Level 15 →</a>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+const GOAL       = 15000;
+const FOG_REVEAL = 80;    // px radius around player where platforms are visible
+const FOG_FADE   = 40;    // px soft fade zone outside reveal radius
+
+const store = {
+  get(k,d){try{const v=localStorage.getItem('ji_'+k);return v!=null?JSON.parse(v):d;}catch{return d;}},
+  set(k,v){try{localStorage.setItem('ji_'+k,JSON.stringify(v));}catch{}}
+};
+let BEST = store.get('lv14_best', 0);
+
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
+let W=0, H=0;
+function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const GRAV=0.44, JVEL=-14.2, HSPD=5.2, HACC=0.70;
+
+let G=null, RAF=null, moveDir=0;
+const touches={};
+
+// ── INPUT ────────────────────────────────────────────────────────────────────
+const tzL=document.getElementById('tz-l'), tzR=document.getElementById('tz-r');
+function calcDir(){const d=Object.values(touches); moveDir=d.length?d[d.length-1]:0;}
+tzL.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=-1;calcDir();},{passive:true});
+tzR.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=+1;calcDir();},{passive:true});
+function tEnd(e){for(const t of e.changedTouches)delete touches[t.identifier];calcDir();}
+tzL.addEventListener('touchend',tEnd,{passive:true}); tzR.addEventListener('touchend',tEnd,{passive:true});
+tzL.addEventListener('touchcancel',tEnd,{passive:true}); tzR.addEventListener('touchcancel',tEnd,{passive:true});
+tzL.addEventListener('mousedown',()=>{moveDir=-1;}); tzR.addEventListener('mousedown',()=>{moveDir=+1;});
+window.addEventListener('mouseup',()=>{moveDir=0;});
+const K={};
+window.addEventListener('keydown',e=>{K[e.code]=true;});
+window.addEventListener('keyup',e=>{K[e.code]=false;});
+
+// ── FOG PARTICLES (ambient drifting wisps) ───────────────────────────────────
+const FOG_WISPS = Array.from({length:28}, ()=>({
+  x: Math.random()*1.4 - 0.2,
+  y: Math.random(),
+  w: 80 + Math.random()*180,
+  h: 30 + Math.random()*60,
+  spd: (Math.random()*0.0008 + 0.0002) * (Math.random()<0.5?1:-1),
+  alpha: 0.04 + Math.random()*0.08,
+  phase: Math.random()*Math.PI*2,
+}));
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+function platW(){
+  const sh=Math.min(0.03,(G?G.score:0)/150000);
+  return rnd(Math.max(W*0.10,W*0.13-sh*W), Math.max(W*0.14,W*0.19-sh*W));
+}
+
+function mkPlat(x,y,w){
+  return {x,y,w:w||platW(),h:10,landed:false};
+}
+
+// ── TIPS ─────────────────────────────────────────────────────────────────────
+const TIPS=[
+  {atScore:0,    text:'Heavy fog — platforms only appear within 80px of you!'},
+  {atScore:25,   text:'Listen to your shadow below — it shows where to land'},
+  {atScore:120,  text:'Move steadily — rushing causes you to overshoot into fog'},
+  {atScore:600,  text:'You can sense the pattern now — trust your instincts'},
+  {atScore:2500, text:'Almost through — the summit breaks above the clouds!'},
+];
+const shownTips=new Set(); let tipTimer=null;
+function checkTips(score){
+  TIPS.forEach((tip,i)=>{if(shownTips.has(i)||score<tip.atScore)return;shownTips.add(i);showTip(tip.text);});
+}
+function showTip(text){
+  const el=document.getElementById('tip');
+  el.textContent=text; el.classList.add('on');
+  clearTimeout(tipTimer);
+  tipTimer=setTimeout(()=>el.classList.remove('on'),3400);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function initGame(){
+  shownTips.clear();
+  const startY=H*0.65;
+  G={
+    W,H,score:0,platCount:0,starCount:0,
+    tick:0,alive:true,won:false,
+    camY:startY-H*0.55,
+    platforms:[],stars:[],particles:[],
+    nextPlatY:startY,
+    pl:{x:W/2-13,y:startY-36,vx:0,vy:0,w:26,h:34,onGround:false,sqT:0,squish:1,trail:[]}
+  };
+  G.platforms.push(mkPlat(W/2-W*0.14, startY, W*0.28));
+  for(let i=0;i<50;i++) seedPlat();
+}
+
+function seedPlat(){
+  G.nextPlatY -= rnd(52,80);
+  const w=platW(), x=rnd(0,W-w);
+  G.platforms.push(mkPlat(x, G.nextPlatY, w));
+  if(Math.random()<0.26)
+    G.stars.push({x:x+w/2+rnd(-w*0.2,w*0.2),y:G.nextPlatY-24,r:7,bob:rnd(0,Math.PI*2),collected:false});
+}
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+function part(x,y,n,col,vs,life,r){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,s=rnd(1,3)*vs;
+    G.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.4,life,ml:life,r:rnd(r*0.5,r),col});
+  }
+}
+function pLand(pl){ part(pl.x+pl.w/2,pl.y+pl.h,8,'rgba(180,200,230,0.7)',1.2,22,3); }
+function pStar(x,y){ part(x,y,12,'#c4922a',1.8,26,4); }
+function pDie(pl){ part(pl.x+pl.w/2,pl.y+pl.h/2,16,'rgba(58,80,112,0.9)',1.8,40,5); }
+function pWin(pl){ part(pl.x+pl.w/2,pl.y+pl.h/2,28,'#6080a8',2.4,60,5); }
+
+let _tt=null;
+function toast(txt){
+  const el=document.getElementById('toast');
+  el.textContent=txt;
+  el.style.cssText='opacity:1;transform:translateX(-50%) scale(1.1);transition:none;';
+  clearTimeout(_tt);
+  _tt=setTimeout(()=>{ el.style.cssText='opacity:0;transform:translateX(-50%) scale(0.82);transition:opacity 0.35s,transform 0.35s;'; },80);
+}
+
+function loop(){ update(); render(); if(G&&G.alive) RAF=requestAnimationFrame(loop); }
+
+// ── UPDATE ───────────────────────────────────────────────────────────────────
+function update(){
+  if(!G||!G.alive) return;
+  G.tick++;
+  const pl=G.pl;
+
+  const h=Math.floor(Math.max(0,-pl.y)/10);
+  if(h>G.score) G.score=h;
+
+  document.getElementById('goal-fill').style.width=Math.min(100,(G.score/GOAL)*100)+'%';
+  document.getElementById('hv-score').textContent=G.score;
+  document.getElementById('hv-goal').textContent=GOAL+'m';
+  checkTips(G.score);
+
+  if(G.score>=GOAL&&!G.won){ G.won=true; pWin(pl); setTimeout(showWin,600); }
+
+  let dir=moveDir;
+  if(K['ArrowLeft']||K['KeyA']) dir=-1;
+  if(K['ArrowRight']||K['KeyD']) dir=+1;
+  if(dir!==0){ pl.vx+=dir*HACC; pl.vx=Math.max(-HSPD,Math.min(HSPD,pl.vx)); }
+  else{ pl.vx*=0.80; if(Math.abs(pl.vx)<0.1) pl.vx=0; }
+
+  pl.vy+=GRAV; pl.x+=pl.vx; pl.y+=pl.vy;
+  if(pl.x+pl.w<0) pl.x=W; if(pl.x>W) pl.x=-pl.w;
+  if(pl.sqT>0){ pl.sqT--; pl.squish=1+0.32*(pl.sqT/8); } else pl.squish=1;
+  pl.trail.push({x:pl.x+pl.w/2,y:pl.y+pl.h/2});
+  if(pl.trail.length>9) pl.trail.shift();
+
+  pl.onGround=false;
+  if(pl.vy>=0){
+    for(const p of G.platforms){
+      const foot=pl.y+pl.h, prev=foot-pl.vy;
+      if(pl.x+pl.w-3>p.x && pl.x+3<p.x+p.w && foot>=p.y && prev<=p.y+p.h+2){
+        pl.y=p.y-pl.h; pl.onGround=true; pl.sqT=8; pl.squish=1.38;
+        pl.vy=JVEL;
+        if(!p.landed){ p.landed=true; G.platCount++; pLand(pl); }
+        break;
+      }
+    }
+  }
+
+  // Drift fog wisps
+  FOG_WISPS.forEach(w=>{
+    w.x += w.spd;
+    w.phase += 0.008;
+    if(w.x > 1.4) w.x=-0.4;
+    if(w.x < -0.4) w.x=1.4;
+  });
+
+  for(const s of G.stars){
+    if(s.collected) continue;
+    s.bob+=0.06;
+    const sy=s.y+Math.sin(s.bob)*4;
+    if(pl.x+pl.w>s.x-s.r&&pl.x<s.x+s.r&&pl.y+pl.h>sy-s.r&&pl.y<sy+s.r){
+      s.collected=true; G.starCount++; G.score+=25; pStar(s.x,sy); toast('+25');
+    }
+  }
+
+  const target=pl.y-H*0.42;
+  if(target<G.camY) G.camY+=(target-G.camY)*0.1;
+
+  while(G.nextPlatY>G.camY-80) seedPlat();
+  G.platforms=G.platforms.filter(p=>p.y-G.camY<H+100);
+  G.stars    =G.stars.filter(s=>s.y-G.camY<H+100);
+
+  for(const p of G.particles){ p.x+=p.vx; p.y+=p.vy; p.vy+=0.13; p.life--; }
+  G.particles=G.particles.filter(p=>p.life>0);
+
+  if(pl.y-G.camY>H+100&&!G.won){ pDie(pl); G.alive=false; setTimeout(showDead,700); }
+}
+
+// ── FOG REVEAL ALPHA for a platform ─────────────────────────────────────────
+// Returns 0..1 — how visible this platform is (0=fully fogged, 1=fully clear)
+function fogAlpha(p, pl){
+  // Use nearest edge of platform to player center
+  const pcx = pl.x + pl.w/2;
+  const pcy = pl.y + pl.h/2 - G.camY;
+  const plcx = p.x + p.w/2;
+  const plcy = p.y - G.camY;
+  const dx = pcx - plcx;
+  const dy = pcy - plcy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+
+  if(dist <= FOG_REVEAL) return 1.0;
+  if(dist >= FOG_REVEAL + FOG_FADE) return 0.0;
+  return 1.0 - (dist - FOG_REVEAL) / FOG_FADE;
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  if(!G) return;
+  cx.clearRect(0,0,W,H);
+
+  // Misty blue-grey sky
+  const bg=cx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#c8d4e4');
+  bg.addColorStop(0.5,'#d8e2ee');
+  bg.addColorStop(1,'#e8edf4');
+  cx.fillStyle=bg; cx.fillRect(0,0,W,H);
+
+  // Draw platforms UNDER the fog layer — only the clear ones
+  drawPlatforms();
+
+  // Stars (same fog reveal logic)
+  drawStars();
+
+  // Game particles (always visible — they're near the player)
+  for(const p of G.particles){
+    cx.globalAlpha=(p.life/p.ml)*0.82;
+    cx.fillStyle=p.col||'#3a5070';
+    cx.beginPath(); cx.arc(p.x,p.y-G.camY,p.r,0,Math.PI*2); cx.fill();
+  }
+  cx.globalAlpha=1;
+
+  // Height markers (always faintly visible)
+  for(let ht=0;ht<=GOAL+1000;ht+=1000){
+    const sy=(-ht*10)-G.camY;
+    if(sy<-10||sy>H+10) continue;
+    const isGoal=ht===GOAL;
+    cx.strokeStyle=isGoal?'rgba(58,80,112,0.35)':'rgba(26,32,48,0.05)';
+    cx.lineWidth=isGoal?2:1; cx.setLineDash(isGoal?[]:[4,12]);
+    cx.beginPath(); cx.moveTo(0,sy); cx.lineTo(W,sy); cx.stroke(); cx.setLineDash([]);
+    cx.fillStyle=isGoal?'rgba(58,80,112,0.55)':'rgba(26,32,48,0.10)';
+    cx.font=isGoal?'bold 10px DM Sans,sans-serif':'9px DM Sans,sans-serif';
+    cx.textAlign='left';
+    cx.fillText(isGoal?'GOAL 15000m':ht+'m', 8, sy-4);
+  }
+
+  // ── FOG LAYER ───────────────────────────────────────────────────────────────
+  // Dense base fog — covers everything far from player
+  drawFogLayer();
+
+  // Player drawn ON TOP of fog (always fully visible)
+  drawPlayer();
+
+  // Control hints
+  cx.globalAlpha=0.07; cx.fillStyle='#1a2030';
+  cx.font='bold 24px sans-serif'; cx.textAlign='center';
+  cx.fillText('◂',W*0.1,H-22); cx.fillText('▸',W*0.9,H-22);
+  cx.globalAlpha=1;
+}
+
+// ── DRAW PLATFORMS (each at its fog-reveal alpha) ────────────────────────────
+function drawPlatforms(){
+  const pl=G.pl;
+  for(const p of G.platforms){
+    const sy=p.y-G.camY;
+    if(sy<-30||sy>H+30) continue;
+
+    const fa=fogAlpha(p, pl);
+    if(fa<=0.005) continue; // fully hidden
+
+    // Shadow
+    cx.globalAlpha=fa*0.10; cx.fillStyle='#1a2030';
+    rrect(cx,p.x+2,sy+5,p.w,p.h,5);
+
+    // Body
+    cx.globalAlpha=fa; cx.fillStyle='#3a5070';
+    rrect(cx,p.x,sy,p.w,p.h,5);
+
+    // Lighter top half
+    cx.fillStyle='#6080a8';
+    rrect(cx,p.x+1,sy,p.w-2,p.h*0.5,4);
+
+    // Gloss
+    cx.fillStyle='rgba(255,255,255,0.22)';
+    rrect(cx,p.x+3,sy+1,p.w-6,2.5,2);
+
+    cx.globalAlpha=1;
+  }
+}
+
+function drawStars(){
+  const pl=G.pl;
+  for(const s of G.stars){
+    if(s.collected) continue;
+    const sy=s.y+Math.sin(s.bob)*4-G.camY;
+    if(sy<-20||sy>H+20) continue;
+
+    // Stars use same distance to player
+    const dx=pl.x+pl.w/2-s.x, dy=pl.y+pl.h/2-G.camY-sy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    let fa=1;
+    if(dist>FOG_REVEAL) fa=Math.max(0,1-(dist-FOG_REVEAL)/FOG_FADE);
+    if(fa<=0.005) continue;
+
+    cx.globalAlpha=fa*0.18; cx.fillStyle='#c4922a';
+    cx.beginPath(); cx.arc(s.x,sy,s.r+5,0,Math.PI*2); cx.fill();
+    cx.globalAlpha=fa; star5(cx,s.x,sy,s.r);
+  }
+  cx.globalAlpha=1;
+}
+
+// ── FOG LAYER ────────────────────────────────────────────────────────────────
+function drawFogLayer(){
+  const pl=G.pl;
+  const pcx=pl.x+pl.w/2, pcy=pl.y+pl.h/2-G.camY;
+
+  // 1. Full white fog base covering the entire canvas
+  cx.fillStyle='rgba(232,237,244,0.82)';
+  cx.fillRect(0,0,W,H);
+
+  // 2. Punch a clear "window" around the player using destination-out compositing
+  cx.save();
+  cx.globalCompositeOperation='destination-out';
+
+  // Inner clear zone — hard circle
+  const clearGrad=cx.createRadialGradient(pcx,pcy,0,pcx,pcy,FOG_REVEAL+FOG_FADE);
+  clearGrad.addColorStop(0,'rgba(0,0,0,0.88)');          // fully clear at player
+  clearGrad.addColorStop(FOG_REVEAL/(FOG_REVEAL+FOG_FADE),'rgba(0,0,0,0.88)');
+  clearGrad.addColorStop(1,'rgba(0,0,0,0)');              // fades back to fog
+
+  cx.fillStyle=clearGrad;
+  cx.beginPath();
+  cx.arc(pcx,pcy,FOG_REVEAL+FOG_FADE,0,Math.PI*2);
+  cx.fill();
+
+  cx.restore();
+
+  // 3. Ambient wisp details on top of the fog for atmosphere
+  cx.save();
+  FOG_WISPS.forEach(w=>{
+    const wx=w.x*W;
+    const wy=w.y*H + Math.sin(w.phase)*18;
+    cx.globalAlpha=w.alpha*(0.7+Math.sin(w.phase*0.7)*0.3);
+    cx.fillStyle='rgba(255,255,255,0.9)';
+    cx.beginPath();
+    cx.ellipse(wx,wy,w.w,w.h,0,0,Math.PI*2);
+    cx.fill();
+  });
+  cx.restore();
+  cx.globalAlpha=1;
+}
+
+// ── PLAYER ───────────────────────────────────────────────────────────────────
+function drawPlayer(){
+  const pl=G.pl;
+
+  // Trail — always visible above fog
+  pl.trail.forEach((t,i)=>{
+    const f=i/pl.trail.length;
+    cx.globalAlpha=f*0.06;
+    const ts=26*(0.3+0.7*f);
+    cx.fillStyle='#3a5070';
+    cx.fillRect(t.x-ts/2,(t.y-ts/2)-G.camY,ts,ts*1.3);
+  });
+  cx.globalAlpha=1;
+
+  const sq=pl.squish,sw=pl.w*(2-sq),sh=pl.h*sq;
+  const px=pl.x-(sw-pl.w)/2, py=pl.y+(pl.h-sh)-G.camY;
+
+  // Drop shadow pointing DOWN into the fog — critical navigation aid
+  let nearPY=py+sh+220;
+  for(const p of G.platforms){
+    const scy=p.y-G.camY;
+    if(scy>py+sh&&scy<nearPY&&pl.x+pl.w>p.x&&pl.x<p.x+p.w) nearPY=scy;
+  }
+  const shdist=Math.min(nearPY-(py+sh),220);
+  const shadAlpha=0.25*(1-shdist/220);
+  if(shadAlpha>0.01){
+    // Shadow on target platform — punches through fog
+    cx.globalAlpha=shadAlpha;
+    cx.fillStyle='#1a2030';
+    cx.fillRect(pl.x+3,nearPY,pl.w-6,4);
+    // Dashed guide line into the fog
+    cx.globalAlpha=shadAlpha*0.5;
+    cx.strokeStyle='#1a2030'; cx.lineWidth=1; cx.setLineDash([3,5]);
+    cx.beginPath(); cx.moveTo(pl.x+pl.w/2,py+sh); cx.lineTo(pl.x+pl.w/2,nearPY); cx.stroke();
+    cx.setLineDash([]);
+  }
+  cx.globalAlpha=1;
+
+  // Body
+  cx.fillStyle='#1a2030'; cx.fillRect(px,py,sw,sh);
+  cx.fillStyle='#e8edf4'; cx.fillRect(px+sw*0.1,py+sh*0.07,sw*0.8,sh*0.54);
+
+  // Eyes — wide and searching
+  const blink=(G.tick%80<3); cx.fillStyle='#1a2030';
+  if(!blink){
+    const eyeH=sh*(pl.vy<-2?0.08:0.15);
+    cx.fillRect(px+sw*0.18,py+sh*0.17,sw*0.24,eyeH);
+    cx.fillRect(px+sw*0.55,py+sh*0.17,sw*0.24,eyeH);
+    // Pupils looking down into fog
+    if(pl.vy>1){
+      cx.fillStyle='rgba(26,32,48,0.5)';
+      cx.fillRect(px+sw*0.21,py+sh*0.22,sw*0.18,sh*0.04);
+      cx.fillRect(px+sw*0.58,py+sh*0.22,sw*0.18,sh*0.04);
+    }
+  } else {
+    cx.fillRect(px+sw*0.18,py+sh*0.25,sw*0.24,sh*0.03);
+    cx.fillRect(px+sw*0.55,py+sh*0.25,sw*0.24,sh*0.03);
+  }
+
+  cx.strokeStyle='#1a2030'; cx.lineWidth=1.8;
+  if(pl.vy<-3){ cx.beginPath(); cx.arc(px+sw*0.5,py+sh*0.49,sw*0.15,0,Math.PI*2); cx.stroke(); }
+  else if(pl.vy>3){ cx.beginPath(); cx.arc(px+sw*0.5,py+sh*0.63,sw*0.17,Math.PI,Math.PI*2); cx.stroke(); }
+  else{ cx.beginPath(); cx.arc(px+sw*0.5,py+sh*0.44,sw*0.17,0.1,Math.PI-0.1); cx.stroke(); }
+
+  cx.fillStyle='#0e1420';
+  if(pl.onGround&&Math.abs(pl.vx)>0.8){
+    const lp=G.tick*0.28;
+    cx.fillRect(px+sw*0.12,py+sh,sw*0.28,Math.abs(Math.sin(lp))*10+5);
+    cx.fillRect(px+sw*0.54,py+sh,sw*0.28,Math.abs(Math.sin(lp+Math.PI))*10+5);
+  } else {
+    cx.fillRect(px+sw*0.12,py+sh,sw*0.28,pl.onGround?8:5);
+    cx.fillRect(px+sw*0.54,py+sh,sw*0.28,pl.onGround?8:5);
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function rrect(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r); c.arcTo(x+w,y+h,x+w-r,y+h,r);
+  c.lineTo(x+r,y+h); c.arcTo(x,y+h,x,y+h-r,r);
+  c.lineTo(x,y+r); c.arcTo(x,y,x+r,y,r);
+  c.closePath(); c.fill();
+}
+function star5(c,cx2,cy2,r){
+  c.beginPath();
+  for(let i=0;i<10;i++){
+    const a=i*Math.PI/5-Math.PI/2, rad=i%2===0?r:r*0.42;
+    i===0?c.moveTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad):c.lineTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad);
+  }
+  c.closePath(); c.fillStyle='#c4922a'; c.fill();
+}
+
+// ── SCREENS ──────────────────────────────────────────────────────────────────
+function showDead(){
+  document.getElementById('dd-score').textContent=G.score;
+  document.getElementById('dd-pl').textContent=G.platCount;
+  document.getElementById('dd-st').textContent=G.starCount;
+  const isNew=G.score>BEST;
+  if(isNew){ BEST=G.score; store.set('lv14_best',G.score); }
+  document.getElementById('dd-rec').textContent=isNew?'✦ New Best!':'';
+  document.getElementById('s-dead').classList.add('show');
+}
+
+function showWin(){
+  G.alive=false; cancelAnimationFrame(RAF);
+  const sc=G.score, secs=Math.floor(G.tick/60);
+  const stars=secs<140?3:secs<290?2:1;
+  document.getElementById('wn-score').textContent=sc;
+  document.getElementById('wn-pl').textContent=G.platCount;
+  document.getElementById('wn-st').textContent=G.starCount;
+  document.getElementById('wn-time').textContent=secs;
+  document.getElementById('win-stars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+  if(sc>BEST){ BEST=sc; store.set('lv14_best',sc); }
+  store.set('lv15_unlocked',true);
+  document.getElementById('s-win').classList.add('show');
+}
+
+function startGame(){
+  document.getElementById('s-dead').classList.remove('show');
+  document.getElementById('s-win').classList.remove('show');
+  document.getElementById('tip').classList.remove('on');
+  Object.keys(touches).forEach(k=>delete touches[k]);
+  moveDir=0; cancelAnimationFrame(RAF);
+  initGame(); RAF=requestAnimationFrame(loop);
+}
+
+document.getElementById('btn-retry').addEventListener('click',startGame);
+document.getElementById('btn-replay').addEventListener('click',startGame);
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+
+startGame();
+</script>
+</body>
+</html>

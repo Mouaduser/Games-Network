@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jump It — Level 15</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#04202e; --ink:#c0eaf8; --mid:#307090;
+      --plat:#0a5870; --platlt:#18a0c0; --gold:#c4922a; --red:#ff4060;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;background:var(--bg);font-family:'DM Sans',sans-serif;}
+    .overlay{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);opacity:0;pointer-events:none;transition:opacity 0.4s ease;padding:24px;}
+    .overlay.show{opacity:1;pointer-events:all;}
+    .screen-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,14vw,80px);letter-spacing:4px;color:var(--ink);text-align:center;}
+    .screen-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-top:6px;text-align:center;}
+    .lbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mid);margin-bottom:3px;margin-top:20px;}
+    .big{font-family:'Bebas Neue',sans-serif;font-size:62px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .new-rec{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-top:4px;min-height:15px;}
+    .stats-row{display:flex;gap:28px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+    .stat{text-align:center;}
+    .stat-v{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:var(--ink);}
+    .stat-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;justify-content:center;}
+    .cta{display:inline-block;background:var(--plat);color:#c0eaf8;border:none;padding:14px 40px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px;letter-spacing:4px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .cta:active{transform:scale(0.94);}
+    .cta.next{background:var(--platlt);color:#fff;}
+    .ghost{display:inline-block;background:transparent;color:var(--ink);border:1.5px solid rgba(192,234,248,0.2);padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:2px;text-decoration:none;-webkit-appearance:none;transition:transform 0.1s;}
+    .ghost:active{transform:scale(0.94);}
+    .level-badge{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--platlt);border:1px solid var(--platlt);padding:4px 12px;border-radius:2px;margin-bottom:16px;}
+    .win-stars{font-size:32px;letter-spacing:8px;margin:12px 0 4px;}
+    .unlock-msg{margin-top:16px;padding:12px 20px;background:rgba(10,88,112,0.15);border:1px solid rgba(24,160,192,0.3);font-size:10px;letter-spacing:2px;color:var(--platlt);text-transform:uppercase;text-align:center;border-radius:2px;}
+    #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px 16px;pointer-events:none;z-index:5;}
+    .hv{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;color:var(--ink);line-height:1;}
+    .hl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+    .hr{text-align:right;}
+    #goal-bar{position:fixed;bottom:0;left:0;right:0;height:4px;background:rgba(192,234,248,0.06);z-index:5;}
+    #goal-fill{height:4px;background:var(--platlt);width:0%;transition:width 0.3s;}
+    #goal-label{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);pointer-events:none;z-index:5;white-space:nowrap;}
+    #tip{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:var(--ink);background:rgba(4,32,46,0.96);border:1px solid rgba(24,160,192,0.3);padding:10px 18px;border-radius:3px;pointer-events:none;z-index:15;text-align:center;opacity:0;transition:opacity 0.4s;max-width:88vw;}
+    #tip.on{opacity:1;}
+    #toast{position:fixed;left:50%;top:30%;transform:translateX(-50%) scale(0.8);font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,60px);letter-spacing:4px;color:var(--platlt);pointer-events:none;z-index:20;opacity:0;white-space:nowrap;}
+    #c{position:fixed;inset:0;width:100%;height:100%;z-index:1;}
+    #tz-l,#tz-r{position:fixed;top:0;bottom:0;width:50%;z-index:6;cursor:pointer;}
+    #tz-l{left:0;}#tz-r{right:0;}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="tz-l"></div><div id="tz-r"></div>
+<div id="hud">
+    <div><div class="hv" id="hv-score">0</div><div class="hl">Height</div></div>
+    <div class="hr"><div class="hv" id="hv-goal">—</div><div class="hl">Goal</div></div>
+</div>
+<div id="goal-bar"><div id="goal-fill"></div></div>
+<div id="goal-label">Reach 16000m — drift through the deep!</div>
+<div id="tip"></div><div id="toast"></div>
+
+<div class="overlay" id="s-dead">
+    <div class="level-badge">Level 15 — Underwater</div>
+    <div class="screen-title">Sunk.</div>
+    <div class="screen-sub">Water slows everything — float with the current!</div>
+    <div class="lbl">Height reached</div>
+    <div class="big" id="dd-score">0</div>
+    <div class="new-rec" id="dd-rec"></div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="dd-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="dd-st">0</div><div class="stat-l">Stars</div></div>
+    </div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-retry">Try Again</button>
+    </div>
+</div>
+
+<div class="overlay" id="s-win">
+    <div class="level-badge">Level 15 — Complete!</div>
+    <div class="screen-title">Surfaced!</div>
+    <div class="win-stars" id="win-stars">★★★</div>
+    <div class="lbl">Final Height</div>
+    <div class="big" id="wn-score">0</div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-v" id="wn-pl">0</div><div class="stat-l">Platforms</div></div>
+        <div class="stat"><div class="stat-v" id="wn-st">0</div><div class="stat-l">Stars</div></div>
+        <div class="stat"><div class="stat-v" id="wn-time">0</div><div class="stat-l">Seconds</div></div>
+    </div>
+    <div class="unlock-msg">🔓 Level 16 unlocked!</div>
+    <div class="btn-row">
+        <a class="ghost" href="index.html">Menu</a>
+        <button class="cta" id="btn-replay">Play Again</button>
+        <a class="cta next" href="level16.html">Level 16 →</a>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+const GOAL     = 16000;
+const GRAV     = 0.18;   // low gravity — underwater
+const JVEL     = -8.0;   // gentle push off surface
+const HSPD     = 3.8;    // limited top speed in water
+const HACC     = 0.48;   // sluggish acceleration
+const VX_DRAG  = 0.92;   // strong horizontal drag (same ground/air)
+const VY_DRAG  = 0.98;   // slight vertical drag too
+
+const store={get(k,d){try{const v=localStorage.getItem('ji_'+k);return v!=null?JSON.parse(v):d;}catch{return d;}},set(k,v){try{localStorage.setItem('ji_'+k,JSON.stringify(v));}catch{}}};
+let BEST=store.get('lv15_best',0);
+
+const cv=document.getElementById('c'), cx=cv.getContext('2d');
+let W=0,H=0;
+function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+resize(); window.addEventListener('resize',resize);
+
+let G=null,RAF=null,moveDir=0;
+const touches={};
+const tzL=document.getElementById('tz-l'), tzR=document.getElementById('tz-r');
+function calcDir(){const d=Object.values(touches);moveDir=d.length?d[d.length-1]:0;}
+tzL.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=-1;calcDir();},{passive:true});
+tzR.addEventListener('touchstart',e=>{for(const t of e.changedTouches)touches[t.identifier]=+1;calcDir();},{passive:true});
+function tEnd(e){for(const t of e.changedTouches)delete touches[t.identifier];calcDir();}
+tzL.addEventListener('touchend',tEnd,{passive:true}); tzR.addEventListener('touchend',tEnd,{passive:true});
+tzL.addEventListener('touchcancel',tEnd,{passive:true}); tzR.addEventListener('touchcancel',tEnd,{passive:true});
+tzL.addEventListener('mousedown',()=>{moveDir=-1;}); tzR.addEventListener('mousedown',()=>{moveDir=+1;});
+window.addEventListener('mouseup',()=>{moveDir=0;});
+const K={};
+window.addEventListener('keydown',e=>{K[e.code]=true;}); window.addEventListener('keyup',e=>{K[e.code]=false;});
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+// ── AMBIENT BUBBLES (always rising) ──────────────────────────────────────────
+const AMBIENT_BUBBLES=Array.from({length:40},()=>resetBubble({}));
+function resetBubble(b){
+  b.x=Math.random();
+  b.y=Math.random()*H;
+  b.r=Math.random()*5+2;
+  b.spd=Math.random()*0.6+0.2;
+  b.drift=Math.random()*0.3-0.15;
+  b.phase=Math.random()*Math.PI*2;
+  b.alpha=Math.random()*0.18+0.06;
+  return b;
+}
+
+// ── CAUSTIC LIGHT PATCHES (shimmer on floor) ─────────────────────────────────
+const CAUSTICS=Array.from({length:12},()=>({
+  x:Math.random(), baseY:Math.random(),
+  w:rnd(30,90), h:rnd(8,20),
+  phase:Math.random()*Math.PI*2,
+  spd:Math.random()*0.02+0.008,
+}));
+
+function platW(){
+  const sh=Math.min(0.03,(G?G.score:0)/160000);
+  return rnd(Math.max(W*0.10,W*0.13-sh*W),Math.max(W*0.14,W*0.19-sh*W));
+}
+
+function mkPlat(x,y,w){
+  return {x,y,w:w||platW(),h:10,landed:false,sway:rnd(0,Math.PI*2)};
+}
+
+// ── TIPS ─────────────────────────────────────────────────────────────────────
+const TIPS=[
+  {atScore:0,   text:'Underwater — everything moves slow and dreamy!'},
+  {atScore:20,  text:'Water drag kills horizontal speed fast — tap in short bursts'},
+  {atScore:100, text:'Low gravity means you hang in the water for a long time'},
+  {atScore:500, text:'Watch the bubbles — they rise where platforms are nearby'},
+  {atScore:2000,text:'Almost at the surface — you can feel the light above!'},
+];
+const shownTips=new Set(); let tipTimer=null;
+function checkTips(score){TIPS.forEach((tip,i)=>{if(shownTips.has(i)||score<tip.atScore)return;shownTips.add(i);showTip(tip.text);});}
+function showTip(text){const el=document.getElementById('tip');el.textContent=text;el.classList.add('on');clearTimeout(tipTimer);tipTimer=setTimeout(()=>el.classList.remove('on'),3400);}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function initGame(){
+  shownTips.clear();
+  AMBIENT_BUBBLES.forEach(b=>resetBubble(b));
+  const startY=H*0.65;
+  G={W,H,score:0,platCount:0,starCount:0,tick:0,alive:true,won:false,
+    camY:startY-H*0.55,platforms:[],stars:[],particles:[],nextPlatY:startY,
+    pl:{x:W/2-13,y:startY-36,vx:0,vy:0,w:26,h:34,onGround:false,sqT:0,squish:1,trail:[]}};
+  G.platforms.push(mkPlat(W/2-W*0.14,startY,W*0.28));
+  for(let i=0;i<44;i++)seedPlat();
+}
+
+function seedPlat(){
+  // Underwater: moderate gaps — floaty physics covers them easily
+  G.nextPlatY-=rnd(90,140);
+  const w=platW(),x=rnd(0,W-w);
+  G.platforms.push(mkPlat(x,G.nextPlatY,w));
+  if(Math.random()<0.30)
+    G.stars.push({x:x+w/2+rnd(-w*0.2,w*0.2),y:G.nextPlatY-28,r:7,bob:rnd(0,Math.PI*2),collected:false});
+}
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+function part(x,y,n,col,vs,life,r,type){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,s=rnd(0.4,2)*vs;
+    G.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-0.8,life,ml:life,r:rnd(r*0.5,r),col,type:type||'dot'});
+  }
+}
+function pLand(pl){
+  // Bubble burst on landing
+  part(pl.x+pl.w/2,pl.y+pl.h,10,'rgba(160,220,248,0.7)',0.9,40,3,'bubble');
+  part(pl.x+pl.w/2,pl.y+pl.h,4,'rgba(255,255,255,0.5)',0.5,28,1.5,'bubble');
+}
+function pStar(x,y){part(x,y,10,'#c4922a',1.4,26,4,'dot');}
+function pDie(pl){part(pl.x+pl.w/2,pl.y+pl.h/2,16,'rgba(24,160,192,0.8)',1.4,45,4,'bubble');}
+function pWin(pl){part(pl.x+pl.w/2,pl.y+pl.h/2,30,'rgba(160,220,248,0.9)',1.8,65,5,'bubble');}
+
+let _tt=null;
+function toast(txt){const el=document.getElementById('toast');el.textContent=txt;el.style.cssText='opacity:1;transform:translateX(-50%) scale(1.1);transition:none;';clearTimeout(_tt);_tt=setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(-50%) scale(0.82);transition:opacity 0.35s,transform 0.35s;';},80);}
+
+function loop(){update();render();if(G&&G.alive)RAF=requestAnimationFrame(loop);}
+
+// ── UPDATE ───────────────────────────────────────────────────────────────────
+function update(){
+  if(!G||!G.alive)return;
+  G.tick++;
+  const pl=G.pl;
+
+  const h=Math.floor(Math.max(0,-pl.y)/10);
+  if(h>G.score)G.score=h;
+  document.getElementById('goal-fill').style.width=Math.min(100,(G.score/GOAL)*100)+'%';
+  document.getElementById('hv-score').textContent=G.score;
+  document.getElementById('hv-goal').textContent=GOAL+'m';
+  checkTips(G.score);
+
+  if(G.score>=GOAL&&!G.won){G.won=true;pWin(pl);setTimeout(showWin,600);}
+
+  let dir=moveDir;
+  if(K['ArrowLeft']||K['KeyA'])dir=-1;
+  if(K['ArrowRight']||K['KeyD'])dir=+1;
+  if(dir!==0){pl.vx+=dir*HACC;pl.vx=Math.max(-HSPD,Math.min(HSPD,pl.vx));}
+
+  // Strong water drag — always applied
+  pl.vx*=VX_DRAG;
+  pl.vy*=VY_DRAG;
+  if(Math.abs(pl.vx)<0.04)pl.vx=0;
+
+  pl.vy+=GRAV;
+  pl.x+=pl.vx; pl.y+=pl.vy;
+  if(pl.x+pl.w<0)pl.x=W; if(pl.x>W)pl.x=-pl.w;
+  if(pl.sqT>0){pl.sqT--;pl.squish=1+0.28*(pl.sqT/8);}else pl.squish=1;
+  // Long slow trail
+  pl.trail.push({x:pl.x+pl.w/2,y:pl.y+pl.h/2});
+  if(pl.trail.length>22)pl.trail.shift();
+
+  pl.onGround=false;
+  if(pl.vy>=0){
+    for(const p of G.platforms){
+      const foot=pl.y+pl.h,prev=foot-pl.vy;
+      if(pl.x+pl.w-3>p.x&&pl.x+3<p.x+p.w&&foot>=p.y&&prev<=p.y+p.h+2){
+        pl.y=p.y-pl.h;pl.onGround=true;pl.sqT=6;pl.squish=1.22;
+        pl.vy=JVEL;
+        if(!p.landed){p.landed=true;G.platCount++;pLand(pl);}
+        break;
+      }
+    }
+  }
+
+  // Ambient bubble animation
+  AMBIENT_BUBBLES.forEach(b=>{
+    b.y-=b.spd;
+    b.x+=b.drift*0.01+Math.sin(G.tick*0.015+b.phase)*0.002;
+    b.phase+=0.04;
+    if(b.y<-b.r*2) resetBubble(b), b.y=H+b.r;
+    if(b.x<-0.05)b.x=1.05; if(b.x>1.05)b.x=-0.05;
+  });
+
+  // Caustic shimmer
+  CAUSTICS.forEach(c=>{c.phase+=c.spd;});
+
+  for(const s of G.stars){
+    if(s.collected)continue;
+    s.bob+=0.04; // slower bob underwater
+    const sy=s.y+Math.sin(s.bob)*6;
+    if(pl.x+pl.w>s.x-s.r&&pl.x<s.x+s.r&&pl.y+pl.h>sy-s.r&&pl.y<sy+s.r){
+      s.collected=true;G.starCount++;G.score+=25;pStar(s.x,sy);toast('+25');
+    }
+  }
+
+  // Slow camera follow — dreamy underwater lag
+  const target=pl.y-H*0.42;
+  if(target<G.camY)G.camY+=(target-G.camY)*0.06;
+
+  while(G.nextPlatY>G.camY-120)seedPlat();
+  G.platforms=G.platforms.filter(p=>p.y-G.camY<H+120);
+  G.stars=G.stars.filter(s=>s.y-G.camY<H+120);
+
+  for(const p of G.particles){
+    p.x+=p.vx; p.y+=p.vy;
+    p.vx*=0.94; // water drag on particles too
+    if(p.type==='bubble')p.vy-=0.06; // bubbles float up
+    else p.vy+=0.06;
+    p.life--;
+  }
+  G.particles=G.particles.filter(p=>p.life>0);
+
+  if(pl.y-G.camY>H+100&&!G.won){pDie(pl);G.alive=false;setTimeout(showDead,700);}
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  if(!G)return;
+  cx.clearRect(0,0,W,H);
+
+  // Deep ocean gradient — darkens with depth, lightens near surface (score)
+  const t=Math.min(1,G.score/16000);
+  const bg=cx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,lerpCol('#020e16','#041824',t));
+  bg.addColorStop(0.6,lerpCol('#04202e','#062838',t));
+  bg.addColorStop(1,lerpCol('#062030','#083040',t));
+  cx.fillStyle=bg; cx.fillRect(0,0,W,H);
+
+  // Caustic light patches (shimmering light from above)
+  drawCaustics();
+
+  // Ambient rising bubbles
+  drawAmbientBubbles();
+
+  // Subtle grid
+  const ds=32,off=((G.camY%ds)+ds)%ds;
+  cx.fillStyle='rgba(24,160,192,0.03)';
+  for(let gx=0;gx<W;gx+=ds)
+    for(let gy=-off;gy<H+ds;gy+=ds)
+      cx.fillRect(gx,gy,2,2);
+
+  // Height markers
+  for(let ht=0;ht<=GOAL+1000;ht+=1000){
+    const sy=(-ht*10)-G.camY;
+    if(sy<-10||sy>H+10)continue;
+    const isGoal=ht===GOAL;
+    cx.strokeStyle=isGoal?'rgba(24,160,192,0.45)':'rgba(192,234,248,0.04)';
+    cx.lineWidth=isGoal?1.5:1;cx.setLineDash(isGoal?[]:[4,12]);
+    cx.beginPath();cx.moveTo(0,sy);cx.lineTo(W,sy);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=isGoal?'rgba(24,160,192,0.65)':'rgba(192,234,248,0.10)';
+    cx.font=isGoal?'bold 10px DM Sans,sans-serif':'9px DM Sans,sans-serif';
+    cx.textAlign='left';cx.fillText(isGoal?'GOAL 16000m':ht+'m',8,sy-4);
+  }
+
+  // Platforms — coral / underwater rock with seaweed sway
+  for(const p of G.platforms){
+    const sy=p.y-G.camY;
+    if(sy<-30||sy>H+30)continue;
+
+    // Soft underwater shadow
+    cx.globalAlpha=0.12;cx.fillStyle='#000';
+    rrect(cx,p.x+2,sy+5,p.w,p.h,5);
+
+    // Body — deep teal rock/coral
+    cx.globalAlpha=1;cx.fillStyle='#0a5870';
+    rrect(cx,p.x,sy,p.w,p.h,5);
+
+    // Lighter top — diffuse light from above
+    cx.fillStyle='#18a0c0';
+    rrect(cx,p.x+1,sy,p.w-2,p.h*0.45,4);
+
+    // Top gloss — caustic shimmer
+    const shimmer=0.15+Math.sin(G.tick*0.04+p.sway)*0.12;
+    cx.fillStyle=`rgba(160,230,255,${shimmer})`;
+    rrect(cx,p.x+3,sy+1,p.w-6,2.5,2);
+
+    // Seaweed strands growing up from platform (swaying)
+    const swayX=Math.sin(G.tick*0.022+p.sway)*4;
+    cx.strokeStyle='rgba(0,180,100,0.5)';cx.lineWidth=1.5;
+    const weedCount=Math.floor(p.w/18);
+    for(let wi=0;wi<weedCount;wi++){
+      const wx=p.x+8+wi*18;
+      const wh=8+Math.sin(p.sway+wi)*4;
+      cx.beginPath();
+      cx.moveTo(wx,sy);
+      cx.quadraticCurveTo(wx+swayX,sy-wh/2,wx+swayX*1.4,sy-wh);
+      cx.stroke();
+    }
+    cx.globalAlpha=1;
+  }
+
+  // Stars — extra glow underwater
+  for(const s of G.stars){
+    if(s.collected)continue;
+    const sy=s.y+Math.sin(s.bob)*6-G.camY;
+    if(sy<-20||sy>H+20)continue;
+    // Underwater shimmer halo
+    cx.globalAlpha=0.12+Math.sin(G.tick*0.05+s.bob)*0.06;cx.fillStyle='#c4922a';
+    cx.beginPath();cx.arc(s.x,sy,s.r+9,0,Math.PI*2);cx.fill();
+    cx.globalAlpha=0.22;cx.fillStyle='#c4922a';
+    cx.beginPath();cx.arc(s.x,sy,s.r+5,0,Math.PI*2);cx.fill();
+    cx.globalAlpha=1;star5(cx,s.x,sy,s.r);
+  }
+
+  // Particles
+  for(const p of G.particles){
+    cx.globalAlpha=(p.life/p.ml)*0.82;
+    if(p.type==='bubble'){
+      // Draw actual bubble ring
+      cx.strokeStyle=p.col||'rgba(160,220,248,0.7)';
+      cx.lineWidth=0.8;
+      cx.beginPath();cx.arc(p.x,p.y-G.camY,p.r,0,Math.PI*2);cx.stroke();
+    } else {
+      cx.fillStyle=p.col||'#18a0c0';
+      cx.beginPath();cx.arc(p.x,p.y-G.camY,p.r,0,Math.PI*2);cx.fill();
+    }
+  }
+  cx.globalAlpha=1;
+
+  drawPlayer();
+
+  // Water surface overlay at very top — light shimmer
+  const waterTop=cx.createLinearGradient(0,0,0,60);
+  waterTop.addColorStop(0,'rgba(160,230,255,0.10)');
+  waterTop.addColorStop(1,'rgba(160,230,255,0)');
+  cx.fillStyle=waterTop;cx.fillRect(0,0,W,60);
+
+  cx.globalAlpha=0.07;cx.fillStyle='#c0eaf8';
+  cx.font='bold 24px sans-serif';cx.textAlign='center';
+  cx.fillText('◂',W*0.1,H-22);cx.fillText('▸',W*0.9,H-22);
+  cx.globalAlpha=1;
+}
+
+// ── CAUSTIC LIGHT ─────────────────────────────────────────────────────────────
+function drawCaustics(){
+  CAUSTICS.forEach(c=>{
+    const cx2=c.x*W;
+    const cy2=c.baseY*H*2-G.camY*0.04+Math.sin(c.phase)*14;
+    cx.globalAlpha=0.04+Math.sin(c.phase*0.7)*0.02;
+    cx.fillStyle='rgba(160,230,255,0.8)';
+    cx.beginPath();cx.ellipse(cx2,cy2,c.w*(0.8+Math.sin(c.phase)*0.2),c.h,c.phase*0.1,0,Math.PI*2);cx.fill();
+  });
+  cx.globalAlpha=1;
+}
+
+// ── AMBIENT BUBBLES ───────────────────────────────────────────────────────────
+function drawAmbientBubbles(){
+  AMBIENT_BUBBLES.forEach(b=>{
+    const bx=b.x*W, by=b.y;
+    cx.globalAlpha=b.alpha;
+    // Bubble ring
+    cx.strokeStyle='rgba(160,220,248,0.8)';cx.lineWidth=0.7;
+    cx.beginPath();cx.arc(bx,by,b.r,0,Math.PI*2);cx.stroke();
+    // Highlight glint
+    cx.fillStyle='rgba(255,255,255,0.4)';
+    cx.beginPath();cx.arc(bx-b.r*0.3,by-b.r*0.3,b.r*0.25,0,Math.PI*2);cx.fill();
+  });
+  cx.globalAlpha=1;
+}
+
+// ── PLAYER ───────────────────────────────────────────────────────────────────
+function drawPlayer(){
+  const pl=G.pl;
+
+  // Long dreamy trail — wavy and blue
+  pl.trail.forEach((t,i)=>{
+    const f=i/pl.trail.length;
+    const waveX=Math.sin(i*0.5+G.tick*0.04)*3*f;
+    cx.globalAlpha=f*0.08;
+    const ts=26*(0.25+0.75*f);
+    cx.fillStyle='#18a0c0';
+    cx.fillRect(t.x-ts/2+waveX,(t.y-ts/2)-G.camY,ts,ts*1.3);
+  });
+  cx.globalAlpha=1;
+
+  const sq=pl.squish,sw=pl.w*(2-sq),sh=pl.h*sq;
+  const px=pl.x-(sw-pl.w)/2,py=pl.y+(pl.h-sh)-G.camY;
+
+  // Shadow / landing indicator
+  let nearPY=py+sh+220;
+  for(const p of G.platforms){
+    const scy=p.y-G.camY;
+    if(scy>py+sh&&scy<nearPY&&pl.x+pl.w>p.x&&pl.x<p.x+p.w)nearPY=scy;
+  }
+  const shdist=Math.min(nearPY-(py+sh),220);
+  cx.globalAlpha=0.10*(1-shdist/220);
+  cx.fillStyle='#18a0c0';cx.fillRect(pl.x+5,nearPY,pl.w-10,3);
+  cx.globalAlpha=1;
+
+  // Body — cyan-teal deep sea creature vibe
+  cx.fillStyle='#083848';cx.fillRect(px,py,sw,sh);
+  cx.fillStyle='#c0eaf8';cx.fillRect(px+sw*0.1,py+sh*0.07,sw*0.8,sh*0.54);
+
+  // Cheek bubble highlights
+  cx.globalAlpha=0.3;cx.fillStyle='rgba(160,230,255,0.7)';
+  cx.beginPath();cx.ellipse(px+sw*0.2,py+sh*0.38,sw*0.10,sh*0.07,0,0,Math.PI*2);cx.fill();
+  cx.beginPath();cx.ellipse(px+sw*0.78,py+sh*0.38,sw*0.10,sh*0.07,0,0,Math.PI*2);cx.fill();
+  cx.globalAlpha=1;
+
+  // Eyes — wide, dreamy half-closed
+  const blink=(G.tick%120<4);
+  cx.fillStyle='#083848';
+  if(!blink){
+    // Half-closed dreamy eyes
+    const eyeH=sh*(pl.vy<-1?0.10:0.18);
+    cx.fillRect(px+sw*0.18,py+sh*0.17,sw*0.24,eyeH);
+    cx.fillRect(px+sw*0.55,py+sh*0.17,sw*0.24,eyeH);
+    // Dreamy top eyelid (half covers eye)
+    cx.fillStyle='#c0eaf8';
+    cx.fillRect(px+sw*0.18,py+sh*0.17,sw*0.24,eyeH*0.4);
+    cx.fillRect(px+sw*0.55,py+sh*0.17,sw*0.24,eyeH*0.4);
+  } else {
+    cx.fillRect(px+sw*0.18,py+sh*0.26,sw*0.24,sh*0.03);
+    cx.fillRect(px+sw*0.55,py+sh*0.26,sw*0.24,sh*0.03);
+  }
+
+  // Gentle smile
+  cx.strokeStyle='#083848';cx.lineWidth=1.8;
+  cx.beginPath();cx.arc(px+sw*0.5,py+sh*0.40,sw*0.18,0.2,Math.PI-0.2);cx.stroke();
+
+  // Fins instead of legs — flap slowly
+  const finWave=Math.sin(G.tick*0.08)*8;
+  cx.fillStyle='rgba(24,160,192,0.7)';
+  // Left fin
+  cx.beginPath();
+  cx.moveTo(px+sw*0.05,py+sh*0.6);
+  cx.quadraticCurveTo(px-sw*0.3,py+sh*0.7+finWave,px+sw*0.1,py+sh*0.85);
+  cx.closePath();cx.fill();
+  // Right fin
+  cx.beginPath();
+  cx.moveTo(px+sw*0.95,py+sh*0.6);
+  cx.quadraticCurveTo(px+sw*1.3,py+sh*0.7-finWave,px+sw*0.9,py+sh*0.85);
+  cx.closePath();cx.fill();
+
+  // Tail / legs
+  cx.fillStyle='#072838';
+  cx.fillRect(px+sw*0.18,py+sh,sw*0.28,pl.onGround?7:4);
+  cx.fillRect(px+sw*0.54,py+sh,sw*0.28,pl.onGround?7:4);
+
+  // Exhale bubbles when jumping
+  if(pl.vy<-2){
+    cx.strokeStyle='rgba(160,220,248,0.6)';cx.lineWidth=0.8;
+    for(let bi=0;bi<2;bi++){
+      const br=2+bi;
+      const bx=px+sw*0.4+bi*sw*0.22;
+      const by2=py-br*2-Math.abs(pl.vy)*bi*1.5;
+      cx.beginPath();cx.arc(bx,by2,br,0,Math.PI*2);cx.stroke();
+    }
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();c.fill();}
+function star5(c,cx2,cy2,r){c.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rad=i%2===0?r:r*0.42;i===0?c.moveTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad):c.lineTo(cx2+Math.cos(a)*rad,cy2+Math.sin(a)*rad);}c.closePath();c.fillStyle='#c4922a';c.fill();}
+function lerpCol(a,b,t){const ah=a.replace('#',''),bh=b.replace('#','');const ar=parseInt(ah.slice(0,2),16),ag=parseInt(ah.slice(2,4),16),ab=parseInt(ah.slice(4,6),16);const br=parseInt(bh.slice(0,2),16),bg2=parseInt(bh.slice(2,4),16),bb=parseInt(bh.slice(4,6),16);return '#'+[ar+(br-ar)*t,ag+(bg2-ag)*t,ab+(bb-ab)*t].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');}
+
+// ── SCREENS ──────────────────────────────────────────────────────────────────
+function showDead(){document.getElementById('dd-score').textContent=G.score;document.getElementById('dd-pl').textContent=G.platCount;document.getElementById('dd-st').textContent=G.starCount;const isNew=G.score>BEST;if(isNew){BEST=G.score;store.set('lv15_best',G.score);}document.getElementById('dd-rec').textContent=isNew?'✦ New Best!':'';document.getElementById('s-dead').classList.add('show');}
+function showWin(){G.alive=false;cancelAnimationFrame(RAF);const sc=G.score,secs=Math.floor(G.tick/60),stars=secs<150?3:secs<310?2:1;document.getElementById('wn-score').textContent=sc;document.getElementById('wn-pl').textContent=G.platCount;document.getElementById('wn-st').textContent=G.starCount;document.getElementById('wn-time').textContent=secs;document.getElementById('win-stars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);if(sc>BEST){BEST=sc;store.set('lv15_best',sc);}store.set('lv16_unlocked',true);document.getElementById('s-win').classList.add('show');}
+function startGame(){document.getElementById('s-dead').classList.remove('show');document.getElementById('s-win').classList.remove('show');document.getElementById('tip').classList.remove('on');Object.keys(touches).forEach(k=>delete touches[k]);moveDir=0;cancelAnimationFrame(RAF);initGame();RAF=requestAnimationFrame(loop);}
+document.getElementById('btn-retry').addEventListener('click',startGame);
+document.getElementById('btn-replay').addEventListener('click',startGame);
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+startGame();
+</script>
+</body>
+</html>
