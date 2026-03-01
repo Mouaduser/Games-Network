@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Gaming | 516px Edition</title>
+    <title>Aurora Gaming | Fixed Icon Size</title>
     <style>
         /* CSS Variables */
         :root {
@@ -63,12 +63,6 @@
             gap: 20px;
         }
 
-        nav a {
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
         #theme-toggle {
             background: var(--text);
             color: var(--bg);
@@ -76,9 +70,7 @@
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.85rem;
             font-weight: bold;
-            transition: all 0.3s;
         }
 
         .hero {
@@ -91,10 +83,9 @@
 
         .game-grid {
             display: grid;
-            /* Stellt sicher, dass das Grid die 516px breiten Karten fassen kann */
-            grid-template-columns: repeat(auto-fit, minmax(516px, 1fr));
-            gap: 40px;
-            justify-items: center;
+            /* Grid passt sich wieder normal an */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
         }
 
         .game-card {
@@ -103,35 +94,41 @@
             overflow: hidden;
             border: 1px solid var(--border);
             transition: transform 0.3s;
-            width: 516px; /* Karte passt sich exakt dem Bild an */
-            max-width: 100%; /* Wichtig für kleinere Bildschirme */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Zentriert das Icon in der Karte */
         }
 
         .game-card:hover { transform: translateY(-5px); }
 
-        /* EXACT 516x516 IMAGE STYLING */
+        /* NUR DAS ICON FORMAT 516x516 */
         .game-img { 
             width: 516px; 
             height: 516px; 
             object-fit: cover; 
             display: block;
+            /* Sorgt dafür, dass es auf kleinen Handys nicht über den Bildschirm ragt */
             max-width: 100%; 
         }
 
-        .game-info { padding: 25px; }
-        .game-title { margin: 0 0 5px 0; color: var(--text); font-size: 1.5rem; }
-        .game-genre { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+        .game-info { 
+            padding: 20px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        .game-title { margin: 0 0 5px 0; color: var(--text); }
+        .game-genre { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 15px; }
 
         .btn-play {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
             width: 100%;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
         }
 
         footer {
@@ -141,18 +138,6 @@
             border-top: 1px solid var(--border);
             color: var(--text-muted);
         }
-
-        /* Anpassung für mobile Endgeräte */
-        @media (max-width: 600px) {
-            .game-grid {
-                grid-template-columns: 1fr;
-            }
-            .game-card, .game-img {
-                width: 100%;
-                height: auto;
-                aspect-ratio: 1 / 1;
-            }
-        }
     </style>
 </head>
 <body>
@@ -161,8 +146,8 @@
         <div class="logo">Aurora</div>
         <div class="nav-container">
             <nav>
-                <a href="jumpit/index.html">Store</a>
-                <a href="#">Community</a>
+                <a href="jumpit/index.html" style="color: var(--text); text-decoration: none; margin-right: 15px;">Store</a>
+                <a href="#" style="color: var(--text); text-decoration: none;">Community</a>
             </nav>
             <button id="theme-toggle">Dark Mode</button>
         </div>
