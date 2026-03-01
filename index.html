@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Gaming | Fixed Icons</title>
+    <title>Aurora Gaming | Perfect UI</title>
     <style>
-        /* CSS Variables */
         :root {
             --primary: #007bff;
             --bg: #ffffff;
@@ -14,10 +13,8 @@
             --text: #212529;
             --text-muted: #6c757d;
             --border: #e0e0e0;
-            --img-bg: #ffffff; /* Hintergrund für Icons, falls sie nicht quadratisch sind */
         }
 
-        /* Dark Mode Colors */
         [data-theme="dark"] {
             --bg: #0b0b0d;
             --header-bg: rgba(11, 11, 13, 0.95);
@@ -25,7 +22,6 @@
             --text: #ffffff;
             --text-muted: #a0a0a0;
             --border: #333333;
-            --img-bg: #252525;
         }
 
         body {
@@ -79,9 +75,7 @@
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.85rem;
             font-weight: bold;
-            transition: all 0.3s;
         }
 
         .hero {
@@ -94,9 +88,9 @@
 
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-            justify-items: center;
+            /* Wir gehen zurück zu einer flexiblen Breite, damit die Karten nebeneinander passen */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
         }
 
         .game-card {
@@ -104,53 +98,48 @@
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border);
-            transition: transform 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        .game-card:hover { transform: translateY(-5px); }
-
-        /* FIXED 516x516 ICON STYLING */
-        .game-img { 
-            width: 516px; 
-            height: 516px; 
-            /* 'contain' stellt sicher, dass nichts abgeschnitten wird */
-            object-fit: contain; 
-            background-color: var(--img-bg);
-            display: block;
-            max-width: 100%; 
+        .game-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
-        .game-info { 
-            padding: 20px; 
+        /* DAS FIXIERT DEN LOOK */
+        .img-container {
             width: 100%;
-            box-sizing: border-box;
+            aspect-ratio: 1 / 1; /* Erzwingt ein perfektes Quadrat egal wie das Bild ist */
+            overflow: hidden;
+            background: #eee;
         }
 
-        .game-title { margin: 0 0 5px 0; color: var(--text); font-size: 1.4rem; }
-        .game-genre { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; }
+        .game-img { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Füllt das Quadrat komplett aus ohne Balken */
+            display: block;
+        }
+
+        .game-info { padding: 20px; }
+        .game-title { margin: 0 0 5px 0; font-size: 1.2rem; font-weight: bold; }
+        .game-genre { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 15px; text-transform: uppercase; }
 
         .btn-play {
             background: var(--primary);
             color: white;
             border: none;
             padding: 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             width: 100%;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
+            transition: background 0.2s;
         }
 
-        footer {
-            padding: 30px;
-            text-align: center;
-            background: var(--card-bg);
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-        }
+        .btn-play:hover { background: #0056b3; }
+
+        footer { padding: 30px; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -168,7 +157,6 @@
 
     <section class="hero">
         <h1>Unlock New Worlds</h1>
-        <p>Your premium gaming library.</p>
     </section>
 
     <div class="container">
@@ -176,45 +164,39 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 Aurora Gaming Platform</p>
+        <p>&copy; 2026 Aurora Gaming</p>
     </footer>
 
     <script>
         const games = [
-            { title: "Jump IT", img: "jumpit/Icon.png", genre: "Arcade / Action" },
-            { title: "Galactic Wars", img: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=800", genre: "Action" },
-            { title: "Shadow Assassin", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800", genre: "Stealth" },
-            { title: "Speed Demon", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800", genre: "Racing" }
+            { title: "Jump IT", img: "jumpit/Icon.png", genre: "Arcade" },
+            { title: "Galactic Wars", img: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=600", genre: "Action" },
+            { title: "Shadow Assassin", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600", genre: "Stealth" },
+            { title: "Speed Demon", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600", genre: "Racing" }
         ];
 
-        // Theme Logic
+        // Theme Toggle Logic
         const toggleBtn = document.getElementById('theme-toggle');
-        const currentTheme = localStorage.getItem('theme') || 'light';
-
-        if (currentTheme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            toggleBtn.textContent = 'Light Mode';
+        const setTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            toggleBtn.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
         }
 
+        if (localStorage.getItem('theme') === 'dark') setTheme('dark');
+
         toggleBtn.addEventListener('click', () => {
-            let theme = document.documentElement.getAttribute('data-theme');
-            if (theme === 'dark') {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                toggleBtn.textContent = 'Dark Mode';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                toggleBtn.textContent = 'Light Mode';
-            }
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            setTheme(isDark ? 'light' : 'dark');
         });
 
-        // Dynamic Game Rendering
         const grid = document.getElementById('gameGrid');
         games.forEach(game => {
             grid.innerHTML += `
                 <div class="game-card">
-                    <img src="${game.img}" class="game-img" alt="${game.title}">
+                    <div class="img-container">
+                        <img src="${game.img}" class="game-img" alt="${game.title}">
+                    </div>
                     <div class="game-info">
                         <h3 class="game-title">${game.title}</h3>
                         <p class="game-genre">${game.genre}</p>
