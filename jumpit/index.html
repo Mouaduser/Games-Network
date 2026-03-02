@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jump It</title>
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Jump It</title>
+  <style>
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -122,6 +122,32 @@
       font-size:14px; opacity:0.4;
     }
 
+    /* GAMES NETWORK BACK BUTTON */
+    .gn-back {
+      position:fixed; top:14px; left:14px; z-index:100;
+      display:flex; align-items:center; gap:7px;
+      background:var(--ink); color:var(--bg);
+      font-family:'DM Sans',sans-serif;
+      font-size:10px; font-weight:500;
+      letter-spacing:2.5px; text-transform:uppercase;
+      text-decoration:none;
+      padding:8px 13px 8px 10px;
+      border-radius:3px;
+      opacity:0.82;
+      transition:opacity 0.15s, transform 0.1s;
+      white-space:nowrap;
+    }
+    .gn-back:hover  { opacity:1; }
+    .gn-back:active { transform:scale(0.95); }
+    .gn-back-arrow {
+      font-size:13px; line-height:1;
+      opacity:0.7;
+    }
+    .gn-back-dot {
+      width:5px; height:5px; border-radius:50%;
+      background:#c4922a; flex-shrink:0;
+    }
+
     /* FOOTER */
     .footer {
       margin-top:auto; padding-top:24px;
@@ -135,6 +161,14 @@
   </style>
 </head>
 <body>
+
+<!-- GAMES NETWORK BACK BUTTON -->
+<a class="gn-back" href="#" onclick="history.length>1?(history.back(),false):(window.location.href='#',false)">
+  <span class="gn-back-arrow">←</span>
+  <span class="gn-back-dot"></span>
+  Games Network
+</a>
+
 <div class="page">
 
     <!-- LOGO -->
@@ -144,41 +178,41 @@
 
     <!-- SCORES -->
     <div class="score-row">
-        <div class="sc">
-            <div class="sc-v" id="best-score">0</div>
-            <div class="sc-l">Best Height</div>
-        </div>
-        <div class="sc">
-            <div class="sc-v" id="levels-done">0</div>
-            <div class="sc-l">Levels Done</div>
-        </div>
+      <div class="sc">
+        <div class="sc-v" id="best-score">0</div>
+        <div class="sc-l">Best Height</div>
+      </div>
+      <div class="sc">
+        <div class="sc-v" id="levels-done">0</div>
+        <div class="sc-l">Levels Done</div>
+      </div>
     </div>
     <div class="streak" id="streak"></div>
 
     <!-- QUICK PLAY (= endless mode / game.html) -->
     <div class="section-title">Endless Mode</div>
     <a class="quick-play" href="game.html">
-        <div>
-            <div class="qp-label">Quick Play</div>
-            <div class="qp-sub">Endless • No goal</div>
-        </div>
-        <div class="qp-arrow">→</div>
+      <div>
+        <div class="qp-label">Quick Play</div>
+        <div class="qp-sub">Endless • No goal</div>
+      </div>
+      <div class="qp-arrow">→</div>
     </a>
 
     <!-- LEVEL SELECT -->
     <div class="section-title">Story Levels</div>
     <div class="level-grid" id="level-grid">
-        <!-- built by JS -->
+      <!-- built by JS -->
     </div>
 
     <!-- FOOTER -->
     <div class="footer">
-        <a class="pp" href="pp.txt">Privacy Policy</a>
+      <a class="pp" href="pp.txt">Privacy Policy</a>
     </div>
 
-</div>
+  </div>
 
-<script>
+  <script>
     'use strict';
 
     const store = {
@@ -210,7 +244,7 @@
     //   unlockKey   → localStorage key that must be true to play
     //   doneKey     → localStorage key set to true when completed
     const LEVELS = [
-      { num:1,  file:'level1.html',  name:'Start The Adventure',   unlockKey:null,           doneKey:'lv2_unlocked' },
+      { num:1,  file:'level1.html',  name:'The Beginning',   unlockKey:null,           doneKey:'lv2_unlocked' },
       { num:2,  file:'level2.html',  name:'Moving Ground',   unlockKey:'lv2_unlocked', doneKey:'lv3_unlocked' },
       { num:3,  file:'level3.html',  name:'Glass Floor',     unlockKey:'lv3_unlocked', doneKey:'lv4_unlocked' },
       { num:4,  file:'level4.html',  name:'Bouncer',         unlockKey:'lv4_unlocked', doneKey:'lv5_unlocked' },
