@@ -435,6 +435,7 @@ const FPS = 60, FRAME_INTERVAL = 1000 / FPS;
 let ball = { x:0, y:0, vx:0, vy:0, radius:18, color:'#ff00ff', trail:[], energy:100, glowIntensity:0 };
 let platforms = [], powerups = [], particles = [], backgroundParticles = [], coinPickups = [];
 let keys = {}, smoothInput = { left:0, right:0 };
+let mouse = { x: null, active: false }; // null = not yet moved
 
 // ── Init ───────────────────────────────────────────────
 window.onload = function () {
@@ -457,6 +458,7 @@ function init(callback) {
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup',   handleKeyUp);
         setupControlButtons();
+        setupMouseControl();
         if (callback) callback();
         return true;
     } catch(e) { return false; }
@@ -479,6 +481,22 @@ function setupControlButtons() {
     bind(leftBtn,  'ArrowLeft');
     bind(rightBtn, 'ArrowRight');
     pauseBtn.addEventListener('click', pauseGame);
+}
+
+function setupMouseControl() {
+    // Track mouse position relative to canvas center
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.active = true;
+    });
+    // Stop mouse steering when cursor leaves canvas
+    canvas.addEventListener('mouseleave', () => { mouse.active = false; });
+    canvas.addEventListener('mouseenter', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.active = true;
+    });
 }
 
 function updateUI() {
@@ -631,10 +649,28 @@ function updateGame() {
     let newLevel = Math.floor(score / 300) + 1;
     if (newLevel > level) { level = newLevel; coins += level * 5; }
 
-    if (keys['ArrowLeft']  || keys['a'] || keys['A']) smoothInput.left  = Math.min(1, smoothInput.left  + 0.12);
-    else smoothInput.left  = Math.max(0, smoothInput.left  - 0.12);
-    if (keys['ArrowRight'] || keys['d'] || keys['D']) smoothInput.right = Math.min(1, smoothInput.right + 0.12);
-    else smoothInput.right = Math.max(0, smoothInput.right - 0.12);
+    // Mouse steering: ball follows cursor X relative to canvas center
+    if (mouse.active && mouse.x !== null && gameState === 'playing') {
+        const center = canvas.width / 2;
+        const offset = mouse.x - ball.x;          // positive = cursor is to the right of ball
+        const deadzone = 10;                       // px — ignore tiny jitter
+        if (offset > deadzone) {
+            smoothInput.right = Math.min(1, Math.abs(offset) / (canvas.width * 0.35));
+            smoothInput.left  = 0;
+        } else if (offset < -deadzone) {
+            smoothInput.left  = Math.min(1, Math.abs(offset) / (canvas.width * 0.35));
+            smoothInput.right = 0;
+        } else {
+            smoothInput.left  = Math.max(0, smoothInput.left  - 0.12);
+            smoothInput.right = Math.max(0, smoothInput.right - 0.12);
+        }
+    } else {
+        // Keyboard fallback
+        if (keys['ArrowLeft']  || keys['a'] || keys['A']) smoothInput.left  = Math.min(1, smoothInput.left  + 0.12);
+        else smoothInput.left  = Math.max(0, smoothInput.left  - 0.12);
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) smoothInput.right = Math.min(1, smoothInput.right + 0.12);
+        else smoothInput.right = Math.max(0, smoothInput.right - 0.12);
+    }
 
     ball.vx += (smoothInput.right - smoothInput.left) * 1.5;
     ball.vy += 0.32;
@@ -768,6 +804,32 @@ function renderGame() {
     });
     ctx.globalAlpha = 1;
     ctx.restore();
+
+    // ── Mouse cursor guide (screen space) ──
+    if (mouse.active && mouse.x !== null && gameState === 'playing') {
+        const ballScreenY = ball.y - camera.y;
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = '#00f5ff';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(mouse.x, 0);
+        ctx.lineTo(mouse.x, canvas.height);
+        ctx.stroke();
+        // small diamond at cursor x aligned with ball y
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = '#00f5ff';
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(mouse.x,     ballScreenY - 8);
+        ctx.lineTo(mouse.x + 6, ballScreenY);
+        ctx.lineTo(mouse.x,     ballScreenY + 8);
+        ctx.lineTo(mouse.x - 6, ballScreenY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
 }
 
 function createBounceParticles(x, y, color) {
@@ -818,7 +880,8 @@ function backToMenu() {
 // ── Info modals (replaces alert()) ────────────────────
 function showInstructions() {
     showInfoModal('🎮 CONTROLS', `
-        <p><span class="key-chip">← →</span> Move left / right</p>
+        <p><span class="key-chip">Mouse</span> Move cursor over canvas to steer the ball</p>
+        <p><span class="key-chip">← →</span> Arrow keys — move left / right</p>
         <p><span class="key-chip">A</span> <span class="key-chip">D</span> Also move left / right</p>
         <p><span class="key-chip">ESC</span> Pause game</p>
         <p style="margin-top:1rem; color:#aaa;">Land on platforms to bounce higher.<br>
