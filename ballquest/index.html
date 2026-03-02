@@ -1,1 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui">
+    <title>Ball Quest</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --accent: #00f5ff;
+            --magenta: #ff00ff;
+            --gold: #ffd700;
+            --bg-dark: #0a0a23;
+            --bg-mid: #1a1a2e;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: radial-gradient(ellipse at center, var(--bg-dark) 0%, var(--bg-mid) 50%, #16213e 100%);
+            color: #fff;
+        }
+
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0; left: 0;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Background stars */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0%   { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1;   transform: scale(1.2); }
+        }
+
+        /* ── MENU ─────────────────────────────────── */
+        .game-title {
+            font-size: clamp(2.2rem, 8vw, 4.5rem);
+            font-weight: 900;
+            margin-bottom: 0.6rem;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff, #ffff00, #00ff00);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: neonGlow 3s ease-in-out infinite alternate, gradientShift 6s ease-in-out infinite;
+        }
+
+        @keyframes neonGlow {
+            0%   { filter: brightness(1)   drop-shadow(0 0 20px #00f5ff); }
+            100% { filter: brightness(1.5) drop-shadow(0 0 60px #ff00ff); }
+        }
+        @keyframes gradientShift {
+            0%,100% { background-position: 0% 50%;   }
+            50%     { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: clamp(0.9rem, 3vw, 1.5rem);
+            color: var(--accent);
+            margin-bottom: clamp(1.5rem, 4vh, 3rem);
+            animation: pulse 3s infinite;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: 0.7; transform: scale(1);    }
+            50%     { opacity: 1;   transform: scale(1.05); }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.8rem, 2vh, 1.5rem);
+            width: 100%;
+            max-width: 360px;
+            padding: 0 16px;
+        }
+
+        .menu-btn {
+            padding: clamp(0.8rem,2vh,1.2rem) clamp(1.5rem,4vw,3rem);
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
+            background-size: 400% 400%;
+            color: white;
+            border: 3px solid transparent;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(131,56,236,0.4);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        .menu-btn:hover::before { left: 100%; }
+        .menu-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 80px rgba(131,56,236,0.8);
+            background-position: 100% 0;
+            border-color: var(--accent);
+        }
+
+        /* ── GAME SCREEN ──────────────────────────── */
+        .game-screen { position: relative; }
+
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid rgba(0,245,255,0.4);
+            border-radius: 16px;
+            box-shadow: 0 0 60px rgba(0,245,255,0.3);
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 10px; left: 10px; right: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            z-index: 10;
+            justify-content: center;
+        }
+
+        .ui-element {
+            background: rgba(0,0,0,0.8);
+            padding: 6px 14px;
+            border-radius: 25px;
+            border: 2px solid var(--accent);
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+
+        .coins-display {
+            border-color: var(--gold) !important;
+            color: var(--gold) !important;
+            text-shadow: 0 0 10px var(--gold) !important;
+        }
+
+        /* ── TOUCH CONTROLS ───────────────────────── */
+        .touch-controls {
+            position: absolute;
+            bottom: 12px; left: 12px; right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .control-btn {
+            width: clamp(54px, 12vw, 70px);
+            height: clamp(54px, 12vw, 70px);
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            background: rgba(0,0,0,0.8);
+            color: var(--accent);
+            font-size: clamp(1.3rem, 4vw, 2rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0,245,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .control-btn:active {
+            transform: scale(0.9);
+            background: rgba(0,245,255,0.2);
+        }
+
+        /* ── CUSTOM MODAL ─────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: linear-gradient(135deg, rgba(10,10,35,0.97), rgba(26,26,46,0.97));
+            border: 2px solid var(--magenta);
+            border-radius: 24px;
+            padding: clamp(1.5rem, 4vw, 2.5rem);
+            text-align: center;
+            max-width: min(420px, 95vw);
+            width: 100%;
+            box-shadow: 0 0 80px rgba(255,0,255,0.5);
+            transform: scale(0.8) translateY(30px);
+            transition: transform 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+        .modal-overlay.show .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-size: clamp(1.4rem, 5vw, 2.5rem);
+            margin-bottom: 1rem;
+            color: var(--magenta);
+            text-shadow: 0 0 30px var(--magenta);
+        }
+
+        .modal-stat {
+            font-size: clamp(0.85rem, 3vw, 1.2rem);
+            margin: 0.5rem 0;
+            color: #ddd;
+        }
+
+        .modal-stat span.hi   { color: var(--accent);  text-shadow: 0 0 10px var(--accent); }
+        .modal-stat span.gold { color: var(--gold);    text-shadow: 0 0 10px var(--gold);   }
+        .modal-stat span.mg   { color: var(--magenta); text-shadow: 0 0 10px var(--magenta);}
+
+        .new-record-badge {
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            color: var(--gold);
+            text-shadow: 0 0 20px var(--gold);
+            margin: 0.8rem 0;
+            animation: pulse 1s infinite;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            padding: clamp(0.6rem,2vw,1rem) clamp(1rem,3vw,2rem);
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            background-size: 300% 300%;
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(131,56,236,0.5);
+        }
+        .modal-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            border-color: var(--accent);
+            background-position: 100% 0;
+        }
+
+        /* ── INFO / ALERT MODAL ───────────────────── */
+        .info-modal .modal-box {
+            border-color: var(--accent);
+            box-shadow: 0 0 80px rgba(0,245,255,0.4);
+        }
+        .info-modal .modal-title {
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent);
+        }
+        .info-modal p {
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+            line-height: 1.7;
+            color: #ccc;
+            margin: 0.5rem 0;
+        }
+        .info-modal .key-chip {
+            display: inline-block;
+            background: rgba(0,245,255,0.15);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 2px 10px;
+            margin: 2px 4px;
+            color: var(--accent);
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-animation" id="bgAnimation"></div>
+
+<!-- ── MENU SCREEN ─────────────────────────────────── -->
+<div class="screen menu-screen active" id="menuScreen">
+    <h1 class="game-title">BALL QUEST</h1>
+    <div class="subtitle">🚀 The Ultimate Jump Adventure</div>
+    <div class="menu-buttons">
+        <button class="menu-btn" onclick="startGame()">▶ START GAME</button>
+        <button class="menu-btn" onclick="showInstructions()">🎮 CONTROLS</button>
+        <button class="menu-btn" onclick="showHighScore()">🏆 RECORD: <span id="menuHighScore">0</span>m</button>
+    </div>
+</div>
+
+<!-- ── GAME SCREEN ─────────────────────────────────── -->
+<div class="screen game-screen" id="gameScreen">
+    <div class="game-ui">
+        <div class="ui-element">Height: <span id="score">0</span>m</div>
+        <div class="ui-element">Record: <span id="highScore">0</span>m</div>
+        <div class="ui-element coins-display">💰 <span id="coins">0</span></div>
+        <div class="ui-element">Combo: <span id="combo">0</span>x</div>
+        <div class="ui-element">Level: <span id="level">1</span></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="touch-controls">
+        <button class="control-btn" id="leftBtn">←</button>
+        <button class="control-btn" id="pauseBtn">⏸</button>
+        <button class="control-btn" id="rightBtn">→</button>
+    </div>
+</div>
+
+<!-- ── GAME OVER MODAL ─────────────────────────────── -->
+<div class="modal-overlay" id="gameOverModal">
+    <div class="modal-box">
+        <h2 class="modal-title">🎯 GAME OVER</h2>
+        <p class="modal-stat">Height reached: <span class="hi" id="finalScore">0</span>m</p>
+        <p class="modal-stat">Coins earned: <span class="gold" id="earnedCoins">0</span> 💰</p>
+        <p class="modal-stat">Max Combo: <span class="mg" id="finalCombo">0</span></p>
+        <div class="new-record-badge" id="newRecord" style="display:none">🏆 NEW RECORD! 🏆</div>
+        <div class="modal-actions">
+            <button class="modal-btn" onclick="restartGame()">🔄 PLAY AGAIN</button>
+            <button class="modal-btn" onclick="backToMenu()">🏠 MAIN MENU</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── PAUSE MODAL ─────────────────────────────────── -->
+<div class="modal-overlay" id="pauseModal">
+    <div class="modal-box">
+        <h2 class="modal-title">⏸ PAUSED</h2>
+        <div class="modal-actions">
+            <button class="modal-btn" onclick="resumeGame()">▶ RESUME</button>
+            <button class="modal-btn" onclick="backToMenu()">🏠 MAIN MENU</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── INFO / ALERT MODAL ─────────────────────────── -->
+<div class="modal-overlay info-modal" id="infoModal">
+    <div class="modal-box">
+        <h2 class="modal-title" id="infoTitle">INFO</h2>
+        <div id="infoBody"></div>
+        <div class="modal-actions">
+            <button class="modal-btn" onclick="closeInfoModal()">✓ CLOSE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Modal helpers ──────────────────────────────────────
+function showModal(id) {
+    document.getElementById(id).classList.add('show');
+}
+function hideModal(id) {
+    document.getElementById(id).classList.remove('show');
+}
+
+function showInfoModal(title, bodyHTML) {
+    document.getElementById('infoTitle').textContent = title;
+    document.getElementById('infoBody').innerHTML = bodyHTML;
+    showModal('infoModal');
+}
+function closeInfoModal() { hideModal('infoModal'); }
+
+// ── Game variables ─────────────────────────────────────
+let canvas, ctx;
+let gameState = 'menu';
+let score = 0;
+let coins = parseInt(localStorage.getItem('ballQuestCoins') || '0');
+let highScore = parseInt(localStorage.getItem('ballQuestHighScore') || '0');
+let combo = 0, maxCombo = 0, level = 1;
+let camera = { y: 0, targetY: 0, shake: 0 };
+let gameTime = 0, lastRenderTime = 0;
+const FPS = 60, FRAME_INTERVAL = 1000 / FPS;
+
+let ball = { x:0, y:0, vx:0, vy:0, radius:18, color:'#ff00ff', trail:[], energy:100, glowIntensity:0 };
+let platforms = [], powerups = [], particles = [], backgroundParticles = [], coinPickups = [];
+let keys = {}, smoothInput = { left:0, right:0 };
+
+// ── Init ───────────────────────────────────────────────
+window.onload = function () {
+    init();
+    createBackground();
+    animateBackground();
+    updateUI();
+};
+
+function init(callback) {
+    try {
+        canvas = document.getElementById('gameCanvas');
+        if (!canvas) { setTimeout(() => init(callback), 100); return false; }
+        canvas.style.touchAction = 'none';
+        ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) return false;
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup',   handleKeyUp);
+        setupControlButtons();
+        if (callback) callback();
+        return true;
+    } catch(e) { return false; }
+}
+
+function setupControlButtons() {
+    const leftBtn  = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    const bind = (btn, key) => {
+        const on  = () => keys[key] = true;
+        const off = () => keys[key] = false;
+        btn.addEventListener('touchstart', on,  { passive: true });
+        btn.addEventListener('touchend',   off, { passive: true });
+        btn.addEventListener('mousedown',  on);
+        btn.addEventListener('mouseup',    off);
+        btn.addEventListener('mouseleave', off);
+    };
+    bind(leftBtn,  'ArrowLeft');
+    bind(rightBtn, 'ArrowRight');
+    pauseBtn.addEventListener('click', pauseGame);
+}
+
+function updateUI() {
+    document.getElementById('highScore').textContent    = highScore;
+    document.getElementById('menuHighScore').textContent = highScore;
+    document.getElementById('coins').textContent  = coins;
+    document.getElementById('score').textContent  = score;
+    document.getElementById('combo').textContent  = combo;
+    document.getElementById('level').textContent  = level;
+}
+
+function handleKeyDown(e) {
+    keys[e.key] = true;
+    if (e.key === 'Escape' && gameState === 'playing') pauseGame();
+}
+function handleKeyUp(e) { keys[e.key] = false; }
+
+// ── Responsive canvas ──────────────────────────────────
+function resizeCanvas() {
+    if (!canvas) return;
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const padding  = 12;
+    const uiHeight = isMobile ? 140 : 120; // room for HUD + touch controls
+
+    let w, h;
+    if (isMobile) {
+        w = Math.max(300, window.innerWidth  - padding * 2);
+        h = Math.max(400, window.innerHeight - uiHeight);
+    } else {
+        w = Math.max(300, Math.min(860, window.innerWidth  - padding * 2));
+        h = Math.max(400, window.innerHeight - uiHeight);
+    }
+
+    canvas.width  = Math.floor(w);
+    canvas.height = Math.floor(h);
+    canvas.style.width  = canvas.width  + 'px';
+    canvas.style.height = canvas.height + 'px';
+
+    if (ctx) {
+        ctx.imageSmoothingEnabled = false;
+    }
+}
+
+// ── Background ─────────────────────────────────────────
+function createBackground() {
+    const c = document.getElementById('bgAnimation');
+    c.innerHTML = '';
+    for (let i = 0; i < 100; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left   = Math.random() * 100 + '%';
+        s.style.top    = Math.random() * 100 + '%';
+        const sz = (Math.random() * 3 + 1) + 'px';
+        s.style.width  = sz;
+        s.style.height = sz;
+        s.style.animationDelay = Math.random() * 3 + 's';
+        c.appendChild(s);
+    }
+}
+
+function animateBackground() {
+    if (backgroundParticles.length < 50) {
+        backgroundParticles.push({
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight + 50,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -Math.random() * 3 - 1,
+            size: Math.random() * 4 + 2,
+            color: `hsl(${Math.random() * 360},70%,60%)`,
+            life: 200,
+            pulse: Math.random() * Math.PI * 2
+        });
+    }
+    backgroundParticles = backgroundParticles.filter(p => {
+        p.x += p.vx; p.y += p.vy; p.life--; p.pulse += 0.08;
+        return p.life > 0 && p.y > -50;
+    });
+    requestAnimationFrame(animateBackground);
+}
+
+// ── Start / restart ────────────────────────────────────
+function startGame() {
+    if (!canvas || !ctx) { init(startAfterInit); } else { startAfterInit(); }
+}
+
+function startAfterInit() {
+    try {
+        resizeCanvas();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        gameState = 'playing';
+
+        document.getElementById('menuScreen').classList.remove('active');
+        document.getElementById('gameScreen').classList.add('active');
+        hideModal('gameOverModal');
+        hideModal('pauseModal');
+
+        score = 0; combo = 0; maxCombo = 0; level = 1;
+        camera.y = 0; camera.targetY = 0; camera.shake = 0; gameTime = 0;
+
+        const w = canvas.width, h = canvas.height;
+        ball.x = w / 2; ball.y = h - 80; ball.vx = 0; ball.vy = -12;
+        ball.trail = []; ball.energy = 100; ball.glowIntensity = 0; ball.color = '#ff00ff';
+
+        platforms = [{ x: w / 2 - 60, y: h - 40, width: 120, height: 20, type: 'normal', color: '#00f5ff', glow: 0 }];
+        generatePlatforms();
+        powerups = []; particles = []; coinPickups = [];
+        requestAnimationFrame(gameLoop);
+    } catch(e) { endGame(); }
+}
+
+function generatePlatforms() {
+    let lastY = platforms.length > 0 ? Math.min(...platforms.map(p => p.y)) : canvas.height;
+    const W = canvas.width;
+    const step = 120 + Math.random() * 80;
+    for (let y = lastY - step; y > lastY - 3000; y -= step) {
+        let count = Math.random() > 0.8 ? 2 : 1;
+        for (let i = 0; i < count; i++) {
+            let w = 50 + Math.random() * 60;
+            let type = Math.random() < 0.2 ? 'bouncy' : 'normal';
+            let plat = { x: Math.random() * (W - w), y: y + i * 30, width: w, height: 25, type, color: type === 'bouncy' ? '#ff00ff' : '#00f5ff', glow: Math.random() * Math.PI * 2 };
+            platforms.push(plat);
+
+            if (Math.random() < 0.2) {
+                const types = ['speed','jump','energy'];
+                powerups.push({ x: plat.x + plat.width / 2, y: plat.y - 40, type: types[Math.floor(Math.random()*3)], collected: false, pulse: Math.random()*Math.PI*2, rotation: 0 });
+            }
+            if (Math.random() < 0.3) {
+                coinPickups.push({ x: plat.x + plat.width/2 + (Math.random()-0.5)*30, y: plat.y - 30, collected: false, pulse: Math.random()*Math.PI*2, value: Math.random()>0.8 ? 5 : 1 });
+            }
+        }
+    }
+}
+
+// ── Game loop ──────────────────────────────────────────
+function gameLoop(currentTime) {
+    if (gameState !== 'playing') return;
+    try {
+        const elapsed = currentTime - lastRenderTime;
+        if (elapsed > FRAME_INTERVAL) {
+            lastRenderTime = currentTime - (elapsed % FRAME_INTERVAL);
+            updateGame();
+            renderGame();
+        }
+        requestAnimationFrame(gameLoop);
+    } catch(e) { endGame(); }
+}
+
+function updateGame() {
+    gameTime++;
+    let newLevel = Math.floor(score / 300) + 1;
+    if (newLevel > level) { level = newLevel; coins += level * 5; }
+
+    if (keys['ArrowLeft']  || keys['a'] || keys['A']) smoothInput.left  = Math.min(1, smoothInput.left  + 0.12);
+    else smoothInput.left  = Math.max(0, smoothInput.left  - 0.12);
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) smoothInput.right = Math.min(1, smoothInput.right + 0.12);
+    else smoothInput.right = Math.max(0, smoothInput.right - 0.12);
+
+    ball.vx += (smoothInput.right - smoothInput.left) * 1.5;
+    ball.vy += 0.32;
+    ball.vx = Math.max(-8, Math.min(8, ball.vx)) * 0.96;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    const W = canvas.width;
+    if (ball.x < -ball.radius)  ball.x = W + ball.radius;
+    if (ball.x >  W + ball.radius) ball.x = -ball.radius;
+
+    ball.trail.push({ x: ball.x, y: ball.y, life: 15, size: ball.radius });
+    ball.trail = ball.trail.filter(t => t.life-- > 0);
+    ball.energy = Math.min(100, ball.energy + 0.3);
+    ball.glowIntensity = Math.max(0, ball.glowIntensity - 0.02);
+
+    platforms.forEach(p => p.glow += 0.06);
+
+    for (let p of platforms) {
+        if (Math.abs(p.y - ball.y) < 400 && ball.vy > 0 &&
+            ball.y + ball.radius > p.y && ball.y + ball.radius < p.y + p.height + 20 &&
+            ball.x + ball.radius > p.x && ball.x - ball.radius < p.x + p.width) {
+            ball.y = p.y - ball.radius;
+            ball.vy = p.type === 'bouncy' ? -20 : -15;
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+            createBounceParticles(ball.x, p.y, p.color);
+            camera.shake = 6;
+            if (p.type === 'bouncy') p.color = `hsl(${gameTime % 360},100%,70%)`;
+            break;
+        }
+    }
+
+    platforms = platforms.filter(p => p.y - camera.y < canvas.height + 100);
+    if (Math.min(...platforms.map(p => p.y)) - camera.y > 0) generatePlatforms();
+
+    powerups.forEach(p => {
+        p.pulse += 0.05; p.rotation += 0.03;
+        if (!p.collected && Math.abs(ball.x - p.x) < 15 && Math.abs(ball.y - p.y) < 15) {
+            p.collected = true;
+            if (p.type === 'energy') ball.energy = Math.min(100, ball.energy + 25);
+            else if (p.type === 'speed') ball.vx *= 1.2;
+            else if (p.type === 'jump') ball.vy -= 5;
+            createPowerupParticles(p);
+        }
+    });
+    powerups = powerups.filter(p => p.y - camera.y < canvas.height + 100 && !p.collected);
+
+    coinPickups.forEach(c => {
+        c.pulse += 0.05;
+        if (!c.collected && Math.abs(ball.x - c.x) < 10 && Math.abs(ball.y - c.y) < 10) {
+            c.collected = true;
+            coins += c.value;
+            createCoinParticles(c);
+        }
+    });
+    coinPickups = coinPickups.filter(c => c.y - camera.y < canvas.height + 100 && !c.collected);
+
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--; });
+    particles = particles.filter(p => p.life > 0);
+
+    camera.targetY = Math.min(camera.targetY, ball.y - canvas.height / 2 + 100);
+    camera.y += (camera.targetY - camera.y) * 0.05;
+    camera.shake *= 0.9;
+
+    score = Math.floor(-camera.y / 10);
+    if (score > highScore) highScore = score;
+
+    if (ball.y - camera.y > canvas.height + 50) endGame();
+    updateUI();
+}
+
+function renderGame() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate((Math.random()-0.5)*camera.shake, (Math.random()-0.5)*camera.shake - camera.y);
+
+    backgroundParticles.forEach(p => {
+        ctx.globalAlpha = Math.sin(p.pulse) * 0.5 + 0.5;
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y + camera.y, p.size, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    platforms.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = Math.sin(p.glow) * 15 + 15;
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+        ctx.shadowBlur = 0;
+    });
+
+    powerups.forEach(p => {
+        const c = p.type === 'speed' ? '#00ffff' : p.type === 'jump' ? '#ff00ff' : '#00ff00';
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
+        ctx.globalAlpha = Math.sin(p.pulse) * 0.5 + 0.5;
+        ctx.fillStyle = c; ctx.shadowColor = c; ctx.shadowBlur = Math.sin(p.pulse)*15+15;
+        ctx.fillRect(-10, -10, 20, 20);
+        ctx.restore();
+    });
+    ctx.globalAlpha = 1;
+
+    coinPickups.forEach(c => {
+        if (c.collected) return;
+        ctx.save(); ctx.translate(c.x, c.y);
+        ctx.scale(1, Math.sin(c.pulse) * 0.2 + 0.8);
+        ctx.fillStyle = c.value === 5 ? '#ffd700' : '#ffff00';
+        ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.shadowColor = ball.color; ctx.shadowBlur = 30 + ball.glowIntensity * 50;
+    ctx.fillStyle = ball.color;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ball.trail.forEach(t => {
+        ctx.globalAlpha = t.life / 15;
+        ctx.fillStyle = ball.color;
+        ctx.beginPath(); ctx.arc(t.x, t.y, t.size * (t.life/15), 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life / 40;
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    ctx.restore();
+}
+
+function createBounceParticles(x, y, color) {
+    for (let i = 0; i < 10; i++) particles.push({ x, y, vx:(Math.random()-0.5)*8, vy:Math.random()*-5-2, life:30, color, size:Math.random()*4+2 });
+}
+function createPowerupParticles(p) {
+    for (let i = 0; i < 15; i++) particles.push({ x:p.x, y:p.y, vx:(Math.random()-0.5)*6, vy:(Math.random()-1)*6, life:30, color:'#ffffff', size:Math.random()*3+1 });
+}
+function createCoinParticles(c) {
+    for (let i = 0; i < 10; i++) particles.push({ x:c.x, y:c.y, vx:(Math.random()-0.5)*5, vy:(Math.random()-1)*5, life:25, color:c.value===5?'#ffd700':'#ffff00', size:Math.random()*2+1 });
+}
+
+// ── Game over / pause ──────────────────────────────────
+function endGame() {
+    gameState = 'gameOver';
+    document.getElementById('finalScore').textContent  = score;
+    document.getElementById('earnedCoins').textContent = coins;
+    document.getElementById('finalCombo').textContent  = maxCombo;
+
+    const prev = parseInt(localStorage.getItem('ballQuestHighScore') || '0');
+    if (score > prev) {
+        document.getElementById('newRecord').style.display = 'block';
+        localStorage.setItem('ballQuestHighScore', score);
+        highScore = score;
+    } else {
+        document.getElementById('newRecord').style.display = 'none';
+    }
+    localStorage.setItem('ballQuestCoins', coins);
+    setTimeout(() => showModal('gameOverModal'), 500);
+}
+
+function pauseGame() {
+    if (gameState === 'playing') { gameState = 'paused'; showModal('pauseModal'); }
+}
+function resumeGame() {
+    if (gameState === 'paused') { gameState = 'playing'; hideModal('pauseModal'); requestAnimationFrame(gameLoop); }
+}
+function restartGame() { hideModal('gameOverModal'); startGame(); }
+function backToMenu() {
+    hideModal('gameOverModal'); hideModal('pauseModal');
+    document.getElementById('gameScreen').classList.remove('active');
+    document.getElementById('menuScreen').classList.add('active');
+    gameState = 'menu';
+    score = 0; combo = 0; maxCombo = 0; level = 1;
+    updateUI();
+}
+
+// ── Info modals (replaces alert()) ────────────────────
+function showInstructions() {
+    showInfoModal('🎮 CONTROLS', `
+        <p><span class="key-chip">← →</span> Move left / right</p>
+        <p><span class="key-chip">A</span> <span class="key-chip">D</span> Also move left / right</p>
+        <p><span class="key-chip">ESC</span> Pause game</p>
+        <p style="margin-top:1rem; color:#aaa;">Land on platforms to bounce higher.<br>
+        Cyan = normal &nbsp;|&nbsp; Magenta = super bounce<br>
+        💠 power-ups &nbsp;|&nbsp; 💰 coins give bonus points</p>
+    `);
+}
+
+function showHighScore() {
+    showInfoModal('🏆 YOUR STATS', `
+        <p class="modal-stat">Best height: <span class="hi">${highScore}m</span></p>
+        <p class="modal-stat">Total coins: <span class="gold">${coins} 💰</span></p>
+    `);
+}
+</script>
+</body>
+</html>
