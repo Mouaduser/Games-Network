@@ -1,638 +1,798 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Color Sort</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@800;900&display=swap" rel="stylesheet">
-    <style>
-  :root {
-    --bg: #0e0e12;
-    --surface: #16161e;
-    --border: #2a2a3a;
-    --text: #e8e8f0;
-    --muted: #6b6b80;
-    --accent: #f0e040;
-    --tube-w: 48px;
-    --tube-h: 160px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow-x: hidden; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 0;
-  }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Color Sort</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  height: 100%;
+  background: #0e0e12;
+  color: #e8e8f0;
+  font-family: 'Space Mono', monospace;
+  overflow: hidden;        /* prevent scroll bouncing on iOS */
+  overscroll-behavior: none;
+}
 
-  /* ===== LANDING ===== */
-  #landing {
-    position: relative; z-index: 1;
-    width: 100%; min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 24px 20px; text-align: center;
-  }
-  .landing-logo {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(3rem, 14vw, 6rem);
-    font-weight: 900; letter-spacing: -3px;
-    background: linear-gradient(135deg, #f0e040 0%, #ff6b9d 50%, #40c4ff 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    line-height: 1;
-    animation: fadeSlideUp 0.6s ease both;
-  }
-  .landing-tagline {
-    margin-top: 10px; color: var(--muted);
-    font-size: clamp(0.6rem, 2.5vw, 0.78rem);
-    letter-spacing: 3px; text-transform: uppercase;
-    animation: fadeSlideUp 0.6s 0.08s ease both;
-  }
-  .landing-tubes {
-    display: flex; gap: 10px; justify-content: center;
-    margin: 30px 0;
-    animation: fadeSlideUp 0.6s 0.16s ease both;
-  }
-  .preview-tube {
-    width: 36px; height: 116px;
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 0 0 20px 20px; border-top: none;
-    display: flex; flex-direction: column-reverse;
-    overflow: hidden; position: relative;
-  }
-  .preview-tube::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 4px; background: var(--border); z-index: 2;
-  }
-  .preview-block { width: 100%; flex: 1; }
+/* dot-grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(#2a2a3a 1px, transparent 1px),
+    linear-gradient(90deg, #2a2a3a 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
+}
 
-  .landing-diff {
-    display: flex; gap: 8px; justify-content: center;
-    margin-bottom: 20px;
-    animation: fadeSlideUp 0.6s 0.24s ease both;
-  }
-  .landing-diff-btn {
-    padding: 7px 18px; border-radius: 100px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase;
-    border: 1px solid var(--border); background: transparent; color: var(--muted);
-    cursor: pointer; transition: all 0.2s;
-  }
-  .landing-diff-btn.active, .landing-diff-btn:hover {
-    background: var(--accent); color: #1a1a00;
-    border-color: var(--accent); font-weight: 700;
-  }
-  .btn-start {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1rem, 4vw, 1.2rem);
-    font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
-    background: var(--accent); color: #1a1a00;
-    border: none; border-radius: 12px; padding: 16px 52px;
-    cursor: pointer; touch-action: manipulation;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    animation: fadeSlideUp 0.6s 0.32s ease both;
-  }
-  .btn-start:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 32px rgba(240,224,64,0.35); }
-  .btn-start:active { transform: scale(0.97); }
+/* ============================================================
+   SCREENS  –  only one visible at a time
+============================================================ */
+.screen {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: env(safe-area-inset-top, 12px) env(safe-area-inset-right, 12px)
+           env(safe-area-inset-bottom, 12px) env(safe-area-inset-left, 12px);
+  overflow: hidden;
+}
+.screen.hidden { display: none !important; }
 
-  .how-to {
-    display: flex; gap: 14px; flex-wrap: wrap;
-    justify-content: center; margin-top: 32px;
-    animation: fadeSlideUp 0.6s 0.4s ease both;
-  }
-  .how-step {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 16px; max-width: 130px; text-align: center;
-  }
-  .how-step .icon { font-size: 1.5rem; margin-bottom: 6px; }
-  .how-step p { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; line-height: 1.5; }
+/* ============================================================
+   LANDING SCREEN
+============================================================ */
+#screen-landing { text-align: center; gap: 0; }
 
-  .landing-footer {
-    margin-top: 36px; color: var(--muted);
-    font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
-    animation: fadeSlideUp 0.6s 0.48s ease both;
-  }
-  .landing-footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s; }
-  .landing-footer a:hover { color: var(--text); }
+.landing-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.8rem, 13vw, 5.5rem);
+  font-weight: 900; letter-spacing: -3px; line-height: 1;
+  background: linear-gradient(135deg, #f0e040 0%, #ff6b9d 50%, #40c4ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: slideUp .6s ease both;
+}
+.landing-sub {
+  margin-top: 8px; color: #6b6b80;
+  font-size: clamp(0.58rem, 2.4vw, 0.75rem);
+  letter-spacing: 3px; text-transform: uppercase;
+  animation: slideUp .6s .08s ease both;
+}
 
-  /* ===== GAME ===== */
-  #game {
-    display: none; position: relative; z-index: 1;
-    width: 100%; max-width: 700px;
-    padding: 0 12px 12px;
-    height: 100vh;
-    flex-direction: column; align-items: center;
-    overflow: hidden;
-  }
-  #game.active { display: flex; }
+/* preview tubes */
+.preview-tubes {
+  display: flex; gap: 10px; justify-content: center;
+  margin: 28px 0 24px;
+  animation: slideUp .6s .16s ease both;
+}
+.ptube {
+  width: 34px; height: 110px;
+  background: #16161e; border: 2px solid #2a2a3a;
+  border-radius: 0 0 18px 18px; border-top: none;
+  display: flex; flex-direction: column-reverse;
+  overflow: hidden; position: relative;
+}
+.ptube::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:#2a2a3a; z-index:2; }
+.pblock { width:100%; flex:1; }
 
-  /* Tubes container grows to fill remaining space */
-  #tubes-container {
-    flex: 1 1 auto;
-    min-height: 0;
-  }
+/* difficulty selector on landing */
+.land-diff {
+  display: flex; gap: 8px; margin-bottom: 22px;
+  animation: slideUp .6s .24s ease both;
+}
+.land-diff button {
+  font-family: 'Space Mono', monospace;
+  font-size: .65rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 7px 18px; border-radius: 100px;
+  border: 1px solid #2a2a3a; background: transparent; color: #6b6b80;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: all .2s;
+}
+.land-diff button.active,
+.land-diff button:hover { background: #f0e040; color: #1a1a00; border-color: #f0e040; font-weight: 700; }
 
-  .game-header {
-    width: 100%; display: flex; align-items: center;
-    justify-content: space-between; padding: 10px 0 6px;
-  }
-  .game-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1.2rem, 5vw, 1.8rem); font-weight: 900; letter-spacing: -1px;
-    background: linear-gradient(135deg, #f0e040, #ff6b9d, #40c4ff);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .btn-home {
-    font-family: 'Space Mono', monospace; font-size: 0.65rem;
-    letter-spacing: 1px; text-transform: uppercase;
-    background: var(--surface); color: var(--muted);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 7px 14px; cursor: pointer; transition: all 0.15s; touch-action: manipulation;
-  }
-  .btn-home:hover { color: var(--text); border-color: #444; }
+/* CTA buttons */
+.land-btns {
+  display: flex; flex-direction: column; gap: 10px; align-items: center;
+  animation: slideUp .6s .32s ease both;
+}
+#btn-start {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(.95rem, 4vw, 1.15rem); font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  background: #f0e040; color: #1a1a00;
+  border: none; border-radius: 12px; padding: 15px 52px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform .15s, box-shadow .15s;
+}
+#btn-start:active { transform: scale(.97); }
+#btn-start:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(240,224,64,.35); }
 
-  .stats {
-    display: flex; justify-content: center;
-    gap: clamp(16px, 5vw, 32px); margin: 4px 0 8px; width: 100%;
-  }
-  .stat { text-align: center; }
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 800; color: var(--accent); line-height: 1;
-  }
-  .stat-label { font-size: clamp(0.5rem, 1.8vw, 0.65rem); color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+#btn-continue {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(.68rem, 2.8vw, .82rem); letter-spacing: 1px; text-transform: uppercase;
+  background: #16161e; color: #e8e8f0;
+  border: 1px solid #2a2a3a; border-radius: 12px; padding: 12px 28px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: border-color .2s, color .2s, transform .15s;
+}
+#btn-continue:active { transform: scale(.97); }
+#btn-continue:hover  { border-color: #f0e040; color: #f0e040; transform: translateY(-2px); }
 
-  .difficulty {
-    display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; width: 100%;
-  }
-  .diff-btn {
-    padding: 5px 14px; border-radius: 100px;
-    font-family: 'Space Mono', monospace;
-    font-size: clamp(0.52rem, 2vw, 0.65rem); letter-spacing: 1.5px; text-transform: uppercase;
-    border: 1px solid var(--border); background: transparent; color: var(--muted);
-    cursor: pointer; transition: all 0.2s; touch-action: manipulation;
-  }
-  .diff-btn.active, .diff-btn:hover { background: var(--accent); color: #1a1a00; border-color: var(--accent); font-weight: 700; }
+/* how-to */
+.how-to {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-top: 26px;
+  animation: slideUp .6s .4s ease both;
+}
+.how-step {
+  background: #16161e; border: 1px solid #2a2a3a;
+  border-radius: 12px; padding: 11px 14px; max-width: 120px; text-align: center;
+}
+.how-step .icon { font-size: 1.4rem; margin-bottom: 5px; }
+.how-step p { font-size: .58rem; color: #6b6b80; text-transform: uppercase; letter-spacing: 1px; line-height: 1.5; }
 
-  .level-badge {
-    display: inline-block; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 100px; padding: 4px 14px;
-    font-size: clamp(0.52rem, 2vw, 0.7rem); letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 10px;
-  }
+/* footer */
+.land-footer {
+  margin-top: 24px; color: #6b6b80;
+  font-size: .58rem; letter-spacing: 1px; text-transform: uppercase;
+  animation: slideUp .6s .48s ease both;
+}
+.land-footer a { color: #6b6b80; text-decoration: underline; text-underline-offset: 3px; }
+.land-footer a:hover { color: #e8e8f0; }
 
-  /* Tubes */
-  #tubes-container {
-    display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-    gap: clamp(6px, 2vw, 10px); margin-bottom: 12px; width: 100%;
-  }
-  .tube {
-    width: var(--tube-w); height: var(--tube-h);
-    background: var(--surface); border: 2px solid var(--border);
-    border-radius: 0 0 24px 24px; border-top: none;
-    display: flex; flex-direction: column-reverse;
-    overflow: hidden; cursor: pointer; position: relative;
-    transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    flex-shrink: 0; touch-action: manipulation;
-  }
-  .tube::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 5px; background: var(--border); border-radius: 4px 4px 0 0; z-index: 2;
-  }
-  .tube:hover { border-color: #444460; transform: translateY(-3px); }
-  .tube.selected {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(240,224,64,0.3);
-    transform: translateY(-10px);
-  }
-  .tube.complete {
-    border-color: #40ff8c;
-    box-shadow: 0 0 0 1px #40ff8c, 0 0 16px rgba(64,255,140,0.25);
-    animation: completePulse 1s ease forwards;
-  }
-  .tube.shake { animation: shake 0.35s ease; }
+.btn-games-network {
+  position: absolute;
+  top: max(env(safe-area-inset-top, 0px), 16px);
+  left: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: .6rem; letter-spacing: 1px; text-transform: uppercase;
+  color: #6b6b80; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid #2a2a3a; border-radius: 8px;
+  background: #16161e;
+  transition: color .2s, border-color .2s;
+  -webkit-tap-highlight-color: transparent;
+  animation: slideUp .6s ease both;
+}
+.btn-games-network:hover { color: #f0e040; border-color: #f0e040; }
 
-  .color-block {
-    width: 100%; position: relative;
-    transition: height 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .color-block::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
-  }
+/* ============================================================
+   GAME SCREEN
+============================================================ */
+#screen-game {
+  justify-content: flex-start;
+  padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  gap: 0;
+}
 
-  .pour-ball {
-    position: fixed; width: 24px; height: 24px; border-radius: 50%;
-    pointer-events: none; z-index: 1000; transform: translate(-50%,-50%);
-  }
+/* header row */
+.game-header {
+  width: 100%; display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 4px;
+  flex-shrink: 0;
+}
+.game-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.1rem, 5vw, 1.7rem); font-weight: 900; letter-spacing: -1px;
+  background: linear-gradient(135deg, #f0e040, #ff6b9d, #40c4ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.btn-menu {
+  font-family: 'Space Mono', monospace; font-size: .6rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  background: #16161e; color: #6b6b80;
+  border: 1px solid #2a2a3a; border-radius: 7px;
+  padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: color .15s, border-color .15s;
+}
+.btn-menu:hover { color: #e8e8f0; border-color: #444; }
 
-  .btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; margin-bottom: 6px; }
-  button {
-    font-family: 'Space Mono', monospace;
-    font-size: clamp(0.58rem, 2vw, 0.75rem); letter-spacing: 1px; text-transform: uppercase;
-    border: none; cursor: pointer; padding: 10px 18px; border-radius: 8px;
-    transition: transform 0.1s ease, opacity 0.15s; touch-action: manipulation;
-  }
-  button:hover { transform: translateY(-2px); }
-  button:active { transform: translateY(0); opacity: 0.8; }
-  .btn-primary { background: var(--accent); color: #1a1a00; font-weight: 700; }
-  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-  .btn-danger { background: #2a1010; color: #ff6060; border: 1px solid #3a1515; }
+/* stats bar */
+.stats {
+  width: 100%; display: flex; justify-content: center;
+  gap: clamp(14px, 5vw, 36px);
+  padding: 4px 12px 6px;
+  flex-shrink: 0;
+}
+.stat { text-align: center; }
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1rem, 4vw, 1.5rem); font-weight: 800; color: #f0e040; line-height: 1;
+}
+.stat-lbl {
+  font-size: clamp(.48rem, 1.7vw, .6rem); color: #6b6b80;
+  text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px;
+}
 
-  .hint {
-    text-align: center; color: var(--muted);
-    font-size: clamp(0.52rem, 2vw, 0.65rem); letter-spacing: 1px; text-transform: uppercase;
-  }
+/* difficulty row */
+.diff-row {
+  display: flex; gap: 6px; justify-content: center;
+  padding: 2px 12px 4px;
+  flex-shrink: 0;
+}
+.diff-row button {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(.5rem, 1.9vw, .62rem); letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 5px 13px; border-radius: 100px;
+  border: 1px solid #2a2a3a; background: transparent; color: #6b6b80;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all .2s;
+}
+.diff-row button.active,
+.diff-row button:hover { background: #f0e040; color: #1a1a00; border-color: #f0e040; font-weight: 700; }
 
-  /* Win overlay */
-  #win-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(10,10,16,0.92); z-index: 100;
-    flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 20px; backdrop-filter: blur(8px);
-  }
-  #win-overlay.show { display: flex; animation: fadeIn 0.4s ease; }
-  .win-emoji { font-size: 3.5rem; margin-bottom: 12px; animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both; }
-  .win-title {
-    font-family: 'Syne', sans-serif; font-size: clamp(2rem, 8vw, 3rem); font-weight: 900;
-    background: linear-gradient(135deg, #f0e040, #40ff8c);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
-  }
-  .win-sub {
-    color: var(--muted); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
-    margin: 8px 0 24px;
-    animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
-  }
-  .win-buttons {
-    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-    animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.4s both;
-  }
+/* level badge */
+.level-badge {
+  font-size: clamp(.5rem, 1.9vw, .65rem); letter-spacing: 2px; text-transform: uppercase;
+  color: #6b6b80; background: #16161e; border: 1px solid #2a2a3a;
+  border-radius: 100px; padding: 3px 13px; margin: 2px auto 6px;
+  display: inline-block; flex-shrink: 0;
+}
 
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
-    60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
-  }
-  @keyframes completePulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.04) translateY(-4px); }
-    100% { transform: scale(1) translateY(0); }
-  }
-  @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-  @keyframes fadeSlideUp {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  @keyframes pop {
-    from { opacity:0; transform:scale(0.7); }
-    to   { opacity:1; transform:scale(1); }
-  }
+/* ---- TUBES AREA ---- */
+#tubes-wrap {
+  flex: 1 1 0;            /* takes all remaining vertical space */
+  min-height: 0;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 10px;
+}
+#tubes-container {
+  display: flex; flex-wrap: wrap;
+  justify-content: center; align-content: center;
+  gap: 8px;
+  width: 100%; height: 100%;
+}
+
+.tube {
+  /* size set via JS css vars */
+  width: var(--tw, 48px);
+  height: var(--th, 160px);
+  background: #16161e;
+  border: 2px solid #2a2a3a;
+  border-radius: 0 0 24px 24px; border-top: none;
+  display: flex; flex-direction: column-reverse;
+  overflow: hidden; cursor: pointer; position: relative;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s ease, border-color .2s, box-shadow .2s;
+}
+.tube::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; background: #2a2a3a; z-index: 2;
+}
+.tube:hover           { border-color: #444460; transform: translateY(-3px); }
+.tube.selected        { border-color: #f0e040; box-shadow: 0 0 0 2px #f0e040, 0 0 18px rgba(240,224,64,.3); transform: translateY(-10px); }
+.tube.done            { border-color: #40ff8c; box-shadow: 0 0 0 1px #40ff8c, 0 0 14px rgba(64,255,140,.25); animation: pulse 1s ease forwards; }
+.tube.shake           { animation: shake .35s ease; }
+
+.cblock {
+  width: 100%; position: relative; flex-shrink: 0;
+}
+.cblock::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+}
+
+/* ---- BOTTOM CONTROLS ---- */
+.controls {
+  width: 100%; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 4px 12px 6px;
+}
+.btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.btn-row button {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(.58rem, 2vw, .72rem); letter-spacing: 1px; text-transform: uppercase;
+  padding: 10px 18px; border-radius: 8px; border: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform .1s, opacity .15s;
+}
+.btn-row button:active { transform: scale(.96); opacity: .8; }
+.btn-primary   { background: #f0e040; color: #1a1a00; font-weight: 700; }
+.btn-secondary { background: #16161e; color: #e8e8f0; border: 1px solid #2a2a3a !important; }
+.btn-danger    { background: #2a1010; color: #ff6060; border: 1px solid #3a1515 !important; }
+
+.hint {
+  font-size: clamp(.5rem, 1.9vw, .62rem); color: #6b6b80;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+/* ============================================================
+   WIN OVERLAY
+============================================================ */
+#win-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(10,10,16,.92); backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 20px;
+  animation: fadeIn .4s ease;
+}
+#win-overlay.hidden { display: none !important; }
+.win-emoji { font-size: 3.5rem; margin-bottom: 12px; animation: pop .5s cubic-bezier(.34,1.56,.64,1) .1s both; }
+.win-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 8vw, 3rem); font-weight: 900;
+  background: linear-gradient(135deg, #f0e040, #40ff8c);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: pop .5s cubic-bezier(.34,1.56,.64,1) .2s both;
+}
+.win-sub {
+  color: #6b6b80; font-size: .75rem; letter-spacing: 2px; text-transform: uppercase;
+  margin: 8px 0 24px;
+  animation: pop .5s cubic-bezier(.34,1.56,.64,1) .3s both;
+}
+.win-btns {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  animation: pop .5s cubic-bezier(.34,1.56,.64,1) .4s both;
+}
+.win-btns button {
+  font-family: 'Space Mono', monospace;
+  font-size: .72rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: 11px 22px; border-radius: 8px; border: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform .1s;
+}
+.win-btns button:active { transform: scale(.96); }
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+@keyframes slideUp  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes pop      { from { opacity:0; transform:scale(.7); } to { opacity:1; transform:scale(1); } }
+@keyframes shake    {
+  0%,100% { transform:translateX(0); }
+  20%     { transform:translateX(-7px); }
+  40%     { transform:translateX(7px); }
+  60%     { transform:translateX(-4px); }
+  80%     { transform:translateX(4px); }
+}
+@keyframes pulse {
+  0%   { transform:scale(1); }
+  50%  { transform:scale(1.04) translateY(-3px); }
+  100% { transform:scale(1); }
+}
 </style>
 </head>
 <body>
 
-<!-- LANDING PAGE -->
-<div id="landing">
-    <div class="landing-logo">Color Sort</div>
-    <div class="landing-tagline">Sort the colors — tube by tube</div>
+<!-- ==================== LANDING ==================== -->
+<div id="screen-landing" class="screen">
+  <a href="index.html" class="btn-games-network">← Games Network</a>
+  <div class="landing-logo">Color Sort</div>
+  <div class="landing-sub">Sort the colors — tube by tube</div>
 
-    <div class="landing-tubes">
-        <div class="preview-tube">
-            <div class="preview-block" style="background:#ff4444"></div>
-            <div class="preview-block" style="background:#4488ff"></div>
-            <div class="preview-block" style="background:#ff4444"></div>
-            <div class="preview-block" style="background:#40c944"></div>
-        </div>
-        <div class="preview-tube">
-            <div class="preview-block" style="background:#f0e040"></div>
-            <div class="preview-block" style="background:#40c944"></div>
-            <div class="preview-block" style="background:#4488ff"></div>
-            <div class="preview-block" style="background:#f0e040"></div>
-        </div>
-        <div class="preview-tube">
-            <div class="preview-block" style="background:#40c944"></div>
-            <div class="preview-block" style="background:#ff4444"></div>
-            <div class="preview-block" style="background:#f0e040"></div>
-            <div class="preview-block" style="background:#4488ff"></div>
-        </div>
-        <div class="preview-tube" style="opacity:0.25"></div>
+  <div class="preview-tubes">
+    <div class="ptube">
+      <div class="pblock" style="background:#ff4444"></div>
+      <div class="pblock" style="background:#4488ff"></div>
+      <div class="pblock" style="background:#ff4444"></div>
+      <div class="pblock" style="background:#40c944"></div>
     </div>
-
-    <div class="landing-diff">
-        <button class="landing-diff-btn" data-level="easy">Easy</button>
-        <button class="landing-diff-btn active" data-level="medium">Medium</button>
-        <button class="landing-diff-btn" data-level="hard">Hard</button>
+    <div class="ptube">
+      <div class="pblock" style="background:#f0e040"></div>
+      <div class="pblock" style="background:#40c944"></div>
+      <div class="pblock" style="background:#4488ff"></div>
+      <div class="pblock" style="background:#f0e040"></div>
     </div>
-
-    <button class="btn-start" id="start-btn">▶ Start Game</button>
-
-    <div class="how-to">
-        <div class="how-step"><div class="icon">👆</div><p>Tap a tube to select it</p></div>
-        <div class="how-step"><div class="icon">🎯</div><p>Tap another tube to pour</p></div>
-        <div class="how-step"><div class="icon">🏆</div><p>Sort all colors to win</p></div>
+    <div class="ptube">
+      <div class="pblock" style="background:#40c944"></div>
+      <div class="pblock" style="background:#ff4444"></div>
+      <div class="pblock" style="background:#f0e040"></div>
+      <div class="pblock" style="background:#4488ff"></div>
     </div>
+    <div class="ptube" style="opacity:.22"></div>
+  </div>
 
-    <div class="landing-footer">
-        &copy; 2025 Color Sort &nbsp;·&nbsp;
-        <a href="pp.txt" target="_blank">Privacy Policy</a>
-    </div>
+  <div class="land-diff" id="land-diff">
+    <button data-d="easy">Easy</button>
+    <button data-d="medium" class="active">Medium</button>
+    <button data-d="hard">Hard</button>
+  </div>
+
+  <div class="land-btns">
+    <button id="btn-start">▶ Start Game</button>
+    <button id="btn-continue" style="display:none">► Continue</button>
+  </div>
+
+  <div class="how-to">
+    <div class="how-step"><div class="icon">👆</div><p>Tap a tube to select</p></div>
+    <div class="how-step"><div class="icon">🎯</div><p>Tap another to pour</p></div>
+    <div class="how-step"><div class="icon">🏆</div><p>Sort all colors to win</p></div>
+  </div>
+
+  <div class="land-footer">
+    &copy; 2025 Color Sort &nbsp;·&nbsp;
+    <a href="pp.txt" target="_blank">Privacy Policy</a>
+  </div>
 </div>
 
-<!-- GAME PAGE -->
-<div id="game">
-    <div class="game-header">
-        <div class="game-title">Color Sort</div>
-        <button class="btn-home" id="home-btn">← Menu</button>
-    </div>
+<!-- ==================== GAME ==================== -->
+<div id="screen-game" class="screen hidden">
 
-    <div class="stats">
-        <div class="stat"><div class="stat-value" id="move-count">0</div><div class="stat-label">Moves</div></div>
-        <div class="stat"><div class="stat-value" id="best-score">—</div><div class="stat-label">Best</div></div>
-        <div class="stat"><div class="stat-value" id="timer-val">0:00</div><div class="stat-label">Time</div></div>
-    </div>
+  <div class="game-header">
+    <div class="game-title">Color Sort</div>
+    <button class="btn-menu" id="btn-menu">← Menu</button>
+  </div>
 
-    <div class="difficulty">
-        <button class="diff-btn" data-level="easy">Easy</button>
-        <button class="diff-btn active" data-level="medium">Medium</button>
-        <button class="diff-btn" data-level="hard">Hard</button>
-    </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="s-moves">0</div><div class="stat-lbl">Moves</div></div>
+    <div class="stat"><div class="stat-val" id="s-best">—</div><div class="stat-lbl">Best</div></div>
+    <div class="stat"><div class="stat-val" id="s-time">0:00</div><div class="stat-lbl">Time</div></div>
+  </div>
 
-    <div class="level-badge" id="level-badge">Level 1</div>
+  <div class="diff-row" id="game-diff">
+    <button data-d="easy">Easy</button>
+    <button data-d="medium" class="active">Medium</button>
+    <button data-d="hard">Hard</button>
+  </div>
+
+  <div class="level-badge" id="lbl-level">Level 1</div>
+
+  <div id="tubes-wrap">
     <div id="tubes-container"></div>
+  </div>
 
+  <div class="controls">
     <div class="btn-row">
-        <button class="btn-primary" id="new-game-btn">New Game</button>
-        <button class="btn-secondary" id="undo-btn">↩ Undo</button>
-        <button class="btn-danger" id="restart-btn">Reset</button>
+      <button class="btn-primary"   id="btn-reshuffle">↺ Reshuffle</button>
+      <button class="btn-secondary" id="btn-undo">↩ Undo</button>
+      <button class="btn-danger"    id="btn-reset">Reset</button>
     </div>
-    <p class="hint">Tap to select · tap again to pour</p>
+    <div class="hint">Tap to select · tap again to pour</div>
+  </div>
 </div>
 
-<!-- Win overlay -->
-<div id="win-overlay">
-    <div class="win-emoji">🎉</div>
-    <div class="win-title">Sorted!</div>
-    <div class="win-sub" id="win-sub-text">Level complete</div>
-    <div class="win-buttons">
-        <button class="btn-primary" id="next-level-btn">Next Level →</button>
-        <button class="btn-secondary" id="win-menu-btn">Menu</button>
-    </div>
+<!-- ==================== WIN OVERLAY ==================== -->
+<div id="win-overlay" class="hidden">
+  <div class="win-emoji">🎉</div>
+  <div class="win-title">Sorted!</div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-primary"   id="btn-nextlvl"  style="background:#f0e040;color:#1a1a00;font-weight:700">Next Level →</button>
+    <button class="btn-secondary" id="btn-winmenu" style="background:#16161e;color:#e8e8f0;border:1px solid #2a2a3a">Menu</button>
+  </div>
 </div>
 
 <script>
-const TUBE_CAPACITY = 4;
+'use strict';
+
+/* ============================================================
+   CONSTANTS
+============================================================ */
+const CAP = 4;
 const COLORS = {
-  red:    '#ff4444', orange: '#ff8c42', yellow: '#f0e040',
-  green:  '#40c944', teal:   '#40e0d0', blue:   '#4488ff',
-  purple: '#cc44ff', pink:   '#ff6bbd', lime:   '#aaff40', sky: '#40c4ff',
+  red:'#ff4444', orange:'#ff8c42', yellow:'#f0e040',
+  green:'#40c944', teal:'#40e0d0', blue:'#4488ff',
+  purple:'#cc44ff', pink:'#ff6bbd', lime:'#aaff40', sky:'#40c4ff'
 };
-const COLOR_KEYS = Object.keys(COLORS);
-const DIFFICULTY = {
-  easy:   { colors: 4, extraTubes: 2 },
-  medium: { colors: 6, extraTubes: 2 },
-  hard:   { colors: 9, extraTubes: 2 },
-};
+const CKEYS = Object.keys(COLORS);
+const DIFF_CFG = { easy:{n:4,e:2}, medium:{n:6,e:2}, hard:{n:9,e:2} };
+const SAVE_KEY = 'cs_v1';
 
-let tubes = [], selectedTube = null, history = [];
-let moves = 0, levelNumber = 1, difficulty = 'medium';
-let timerInterval = null, timerSeconds = 0, bestScores = {};
+/* ============================================================
+   STATE
+============================================================ */
+let tubes=[], sel=null, hist=[];
+let moves=0, level=1, diff='medium';
+let tSec=0, tRef=null;
+let best={};
 
-// ---- Screen switching ----
-function showLanding() {
-  document.getElementById('landing').style.display = 'flex';
-  document.getElementById('game').classList.remove('active');
+/* ============================================================
+   PERSISTENCE
+============================================================ */
+function save() {
+  if (level < 2) return;          // never save level 1
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({level, diff, best})); } catch(_){}
+}
+function load() {
+  try { const r=localStorage.getItem(SAVE_KEY); return r?JSON.parse(r):null; } catch(_){ return null; }
+}
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(_){}
+}
+
+/* ============================================================
+   SCREEN MANAGEMENT  –  simple show/hide
+============================================================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function goLanding() {
   stopTimer();
-}
-function showGame() {
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('game').classList.add('active');
-  levelNumber = 1; moves = 0;
-  startGame();
+  refreshContinueBtn();
+  showScreen('screen-landing');
 }
 
-// ---- Responsive tube sizing ----
-function calcTubeSize(numTubes) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const availW = Math.min(vw, 700) - 28;
-  const gap = 8;
+function goGame() {
+  showScreen('screen-game');
+  // Wait one frame so the game screen is visible before measuring dimensions
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      newGame();
+    });
+  });
+}
 
-  // Estimate height used by UI elements above/below tubes
-  // header ~50px, stats ~55px, diff row ~36px, badge ~32px, btnRow ~50px, hint ~24px, padding ~24px
-  const uiHeight = 271;
-  const availH = vh - uiHeight;
+/* ============================================================
+   LANDING UI
+============================================================ */
+function refreshContinueBtn() {
+  const p = load();
+  const btn = document.getElementById('btn-continue');
+  if (p && p.level > 1) {
+    btn.style.display = 'inline-block';
+    btn.textContent   = `► Continue  (Level ${p.level})`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
 
-  let cols = numTubes;
-  let tubeW = (availW - gap * (cols - 1)) / cols;
+// sync both diff selectors
+function setDiff(d) {
+  diff = d;
+  document.querySelectorAll('[data-d]').forEach(b => {
+    b.classList.toggle('active', b.dataset.d === d);
+  });
+}
 
-  // If tubes would be too narrow, split into 2 rows
-  if (tubeW < 36) {
-    cols = Math.ceil(numTubes / 2);
-    tubeW = (availW - gap * (cols - 1)) / cols;
+// landing diff buttons
+document.querySelectorAll('#land-diff [data-d]').forEach(b =>
+  b.addEventListener('click', () => setDiff(b.dataset.d))
+);
+
+// start game (fresh)
+document.getElementById('btn-start').addEventListener('click', () => {
+  level = 1;
+  moves = 0;
+  best  = {};
+  clearSave();
+  goGame();
+});
+
+// continue
+document.getElementById('btn-continue').addEventListener('click', () => {
+  const p = load();
+  if (p) { level=p.level; diff=p.diff||'medium'; best=p.best||{}; setDiff(diff); }
+  moves = 0;
+  goGame();
+});
+
+/* ============================================================
+   GAME UI – DIFFICULTY BUTTONS
+============================================================ */
+document.querySelectorAll('#game-diff [data-d]').forEach(b =>
+  b.addEventListener('click', () => {
+    setDiff(b.dataset.d);
+    level = 1; clearSave();
+    newGame();
+  })
+);
+
+/* ============================================================
+   TUBE SIZING  –  called after screen is visible
+============================================================ */
+function sizeTubes(n) {
+  const wrap  = document.getElementById('tubes-wrap');
+  const avW   = wrap.clientWidth  - 20;          // minus padding
+  const avH   = wrap.clientHeight - 16;
+  const gap   = 8;
+
+  let cols = n;
+  let tw   = (avW - gap*(cols-1)) / cols;
+
+  if (tw < 34) {
+    cols = Math.ceil(n/2);
+    tw   = (avW - gap*(cols-1)) / cols;
   }
 
-  const rows = Math.ceil(numTubes / cols);
-  tubeW = Math.max(32, Math.min(tubeW, 72));
+  tw = Math.max(30, Math.min(tw, 70));
+  const rows = Math.ceil(n / cols);
+  let th = (avH - gap*(rows-1)) / rows;
+  th = Math.max(100, Math.min(th, tw*4.2, 300));
 
-  // Height fills available vertical space across rows, with row gaps
-  const rowGap = 12;
-  let tubeH = (availH - rowGap * (rows - 1)) / rows;
-
-  // Clamp to a sensible range and also enforce max ratio
-  tubeH = Math.max(120, Math.min(tubeH, tubeW * 4.5, 320));
-
-  return { w: Math.floor(tubeW), h: Math.floor(tubeH) };
-}
-
-function applyTubeSize() {
-  const { w, h } = calcTubeSize(tubes.length);
-  document.documentElement.style.setProperty('--tube-w', w + 'px');
-  document.documentElement.style.setProperty('--tube-h', h + 'px');
+  document.documentElement.style.setProperty('--tw', Math.floor(tw)+'px');
+  document.documentElement.style.setProperty('--th', Math.floor(th)+'px');
 }
 
 window.addEventListener('resize', () => {
-  if (document.getElementById('game').classList.contains('active')) applyTubeSize();
+  if (!document.getElementById('screen-game').classList.contains('hidden')) {
+    sizeTubes(tubes.length);
+  }
 });
 
-// ---- Game logic ----
-function startGame(keepLevel = false) {
-  if (!keepLevel) moves = 0;
-  selectedTube = null; history = [];
-  updateMoveCount();
-  const cfg = DIFFICULTY[difficulty];
-  tubes = generatePuzzle(cfg.colors, cfg.extraTubes);
-  applyTubeSize();
+/* ============================================================
+   GAME CORE
+============================================================ */
+function newGame() {
+  stopTimer();
+  moves = 0; sel = null; hist = [];
+  updateStats();
+
+  const cfg = DIFF_CFG[diff];
+  tubes = makePuzzle(cfg.n, cfg.e);
+
+  sizeTubes(tubes.length);
   render();
-  resetTimer(); startTimer();
-  document.getElementById('level-badge').textContent = `Level ${levelNumber}`;
+  startTimer();
+
+  document.getElementById('lbl-level').textContent = `Level ${level}`;
+  save();
 }
 
-function generatePuzzle(numColors, extraTubes) {
-  const pool = COLOR_KEYS.slice(0, numColors);
+function makePuzzle(n, extra) {
+  const pool = CKEYS.slice(0, n);
   let balls = [];
-  for (const c of pool) for (let i = 0; i < TUBE_CAPACITY; i++) balls.push(c);
-  for (let i = balls.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
-    [balls[i], balls[j]] = [balls[j], balls[i]];
+  pool.forEach(c => { for(let i=0;i<CAP;i++) balls.push(c); });
+  for (let i=balls.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [balls[i],balls[j]]=[balls[j],balls[i]];
   }
-  const t = [];
-  for (let i = 0; i < numColors; i++) t.push(balls.slice(i*TUBE_CAPACITY, (i+1)*TUBE_CAPACITY));
-  for (let i = 0; i < extraTubes; i++) t.push([]);
+  const t=[];
+  for(let i=0;i<n;i++) t.push(balls.slice(i*CAP,(i+1)*CAP));
+  for(let i=0;i<extra;i++) t.push([]);
   return t;
 }
 
 function render() {
-  const c = document.getElementById('tubes-container');
-  c.innerHTML = '';
+  const wrap = document.getElementById('tubes-container');
+  wrap.innerHTML = '';
   tubes.forEach((tube, idx) => {
     const el = document.createElement('div');
     el.className = 'tube';
-    if (idx === selectedTube) el.classList.add('selected');
-    if (isTubeComplete(tube)) el.classList.add('complete');
-    for (let i = 0; i < tube.length; i++) {
+    if (idx === sel)          el.classList.add('selected');
+    if (isComplete(tube))     el.classList.add('done');
+
+    tube.forEach(c => {
       const b = document.createElement('div');
-      b.className = 'color-block';
-      b.style.height = (100 / TUBE_CAPACITY) + '%';
-      b.style.background = COLORS[tube[i]];
+      b.className = 'cblock';
+      b.style.cssText = `height:${100/CAP}%;background:${COLORS[c]}`;
       el.appendChild(b);
-    }
-    el.addEventListener('click', () => handleTubeClick(idx));
-    c.appendChild(el);
+    });
+
+    el.addEventListener('click', () => tap(idx));
+    wrap.appendChild(el);
   });
 }
 
-function handleTubeClick(idx) {
-  if (selectedTube === null) {
-    if (tubes[idx].length === 0) return;
-    selectedTube = idx; render(); return;
+function tap(idx) {
+  if (sel === null) {
+    if (!tubes[idx].length) return;
+    sel = idx; render(); return;
   }
-  if (selectedTube === idx) { selectedTube = null; render(); return; }
-  const from = selectedTube, to = idx;
-  if (canPour(from, to)) {
-    saveHistory(); pour(from, to); moves++; updateMoveCount();
-    selectedTube = null; render(); animatePour(to); checkWin();
+  if (sel === idx) { sel=null; render(); return; }
+
+  if (canPour(sel, idx)) {
+    hist.push(tubes.map(t=>[...t]));
+    if (hist.length > 60) hist.shift();
+    pour(sel, idx);
+    moves++;
+    sel = null;
+    updateStats();
+    render();
+    checkWin();
   } else {
-    selectedTube = null; render();
+    const old = sel; sel=null; render();
     const els = document.querySelectorAll('.tube');
-    els[idx].classList.add('shake');
-    setTimeout(() => els[idx].classList.remove('shake'), 400);
+    els[old].classList.add('shake');
+    setTimeout(()=>els[old].classList.remove('shake'), 380);
   }
 }
 
-function canPour(f, t) {
-  if (!tubes[f].length) return false;
-  if (tubes[t].length >= TUBE_CAPACITY) return false;
-  if (!tubes[t].length) return true;
-  return tubes[f][tubes[f].length-1] === tubes[t][tubes[t].length-1];
+function canPour(f,t) {
+  if (!tubes[f].length)            return false;
+  if (tubes[t].length >= CAP)      return false;
+  if (!tubes[t].length)            return true;
+  return tubes[f].at(-1) === tubes[t].at(-1);
 }
-function pour(f, t) {
-  const color = tubes[f][tubes[f].length-1];
-  while (tubes[f].length && tubes[t].length < TUBE_CAPACITY && tubes[f][tubes[f].length-1] === color)
+
+function pour(f,t) {
+  const c = tubes[f].at(-1);
+  while (tubes[f].length && tubes[t].length < CAP && tubes[f].at(-1)===c)
     tubes[t].push(tubes[f].pop());
 }
-function isTubeComplete(tube) {
-  return tube.length === TUBE_CAPACITY && tube.every(c => c === tube[0]);
+
+function isComplete(tube) {
+  return tube.length===CAP && tube.every(c=>c===tube[0]);
 }
+
 function checkWin() {
-  if (tubes.filter(t => t.length > 0).every(t => isTubeComplete(t))) {
+  if (tubes.filter(t=>t.length).every(isComplete)) {
     stopTimer();
-    const key = `${difficulty}-${levelNumber}`;
-    if (!bestScores[key] || moves < bestScores[key]) bestScores[key] = moves;
-    updateBestScore();
-    setTimeout(showWin, 400);
+    const k = `${diff}-${level}`;
+    if (!best[k] || moves < best[k]) best[k]=moves;
+    save();
+    setTimeout(showWin, 380);
   }
 }
+
+/* ============================================================
+   WIN OVERLAY
+============================================================ */
 function showWin() {
-  document.getElementById('win-sub-text').textContent =
-    `Level ${levelNumber} · ${moves} moves · ${formatTime(timerSeconds)}`;
-  document.getElementById('win-overlay').classList.add('show');
+  document.getElementById('win-sub').textContent =
+    `Level ${level} · ${moves} moves · ${fmt(tSec)}`;
+  document.getElementById('win-overlay').classList.remove('hidden');
 }
-function hideWin() { document.getElementById('win-overlay').classList.remove('show'); }
-
-function saveHistory() {
-  history.push(tubes.map(t => [...t]));
-  if (history.length > 50) history.shift();
-}
-function undo() {
-  if (!history.length) return;
-  tubes = history.pop(); selectedTube = null;
-  if (moves > 0) moves--;
-  updateMoveCount(); render();
+function hideWin() {
+  document.getElementById('win-overlay').classList.add('hidden');
 }
 
-function startTimer() {
-  timerSeconds = 0; updateTimer();
-  timerInterval = setInterval(() => { timerSeconds++; updateTimer(); }, 1000);
-}
-function stopTimer() { clearInterval(timerInterval); }
-function resetTimer() { stopTimer(); timerSeconds = 0; updateTimer(); }
-function formatTime(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
-function updateTimer() { document.getElementById('timer-val').textContent = formatTime(timerSeconds); }
-
-function updateMoveCount() { document.getElementById('move-count').textContent = moves; updateBestScore(); }
-function updateBestScore() {
-  const key = `${difficulty}-${levelNumber}`;
-  document.getElementById('best-score').textContent = bestScores[key] ?? '—';
-}
-
-function animatePour(toIdx) {
-  const els = document.querySelectorAll('.tube');
-  const el = els[toIdx]; if (!el) return;
-  const rect = el.getBoundingClientRect();
-  const color = tubes[toIdx][tubes[toIdx].length-1]; if (!color) return;
-  const ball = document.createElement('div');
-  ball.className = 'pour-ball';
-  ball.style.cssText = `background:${COLORS[color]};left:${rect.left+rect.width/2}px;top:${rect.top-14}px;box-shadow:0 0 10px ${COLORS[color]}`;
-  document.body.appendChild(ball);
-  ball.animate([
-    { opacity:1, transform:'translate(-50%,-50%) scale(1)' },
-    { opacity:0, transform:'translate(-50%, calc(-50% - 32px)) scale(0.5)' }
-  ], { duration:320, easing:'ease-out', fill:'forwards' }).onfinish = () => ball.remove();
-}
-
-// ---- Difficulty sync ----
-function setDifficulty(level) {
-  difficulty = level;
-  document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.level === level));
-  document.querySelectorAll('.landing-diff-btn').forEach(b => b.classList.toggle('active', b.dataset.level === level));
-}
-
-document.querySelectorAll('.landing-diff-btn').forEach(btn =>
-  btn.addEventListener('click', () => setDifficulty(btn.dataset.level))
-);
-document.querySelectorAll('.diff-btn').forEach(btn =>
-  btn.addEventListener('click', () => { setDifficulty(btn.dataset.level); levelNumber = 1; startGame(); })
-);
-
-// ---- Buttons ----
-document.getElementById('start-btn').addEventListener('click', showGame);
-document.getElementById('home-btn').addEventListener('click', showLanding);
-document.getElementById('new-game-btn').addEventListener('click', () => { levelNumber++; startGame(); });
-document.getElementById('restart-btn').addEventListener('click', () => { levelNumber = 1; startGame(); });
-document.getElementById('undo-btn').addEventListener('click', undo);
-document.getElementById('next-level-btn').addEventListener('click', () => { hideWin(); levelNumber++; startGame(true); });
-document.getElementById('win-menu-btn').addEventListener('click', () => { hideWin(); showLanding(); });
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'z' || e.key === 'Z') undo();
-  if (e.key === 'Escape') { selectedTube = null; render(); }
+document.getElementById('btn-nextlvl').addEventListener('click', () => {
+  hideWin(); level++; newGame();
 });
+document.getElementById('btn-winmenu').addEventListener('click', () => {
+  hideWin(); goLanding();
+});
+
+/* ============================================================
+   IN-GAME BUTTONS
+============================================================ */
+document.getElementById('btn-menu').addEventListener('click', goLanding);
+
+document.getElementById('btn-reshuffle').addEventListener('click', newGame);
+
+document.getElementById('btn-undo').addEventListener('click', () => {
+  if (!hist.length) return;
+  tubes = hist.pop(); sel=null; moves=Math.max(0,moves-1);
+  updateStats(); render();
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  level=1; clearSave(); newGame();
+});
+
+/* ============================================================
+   TIMER
+============================================================ */
+function startTimer() {
+  tSec=0; updateTime();
+  tRef = setInterval(()=>{ tSec++; updateTime(); }, 1000);
+}
+function stopTimer() { clearInterval(tRef); tRef=null; }
+function fmt(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function updateTime() { document.getElementById('s-time').textContent=fmt(tSec); }
+
+/* ============================================================
+   STATS
+============================================================ */
+function updateStats() {
+  document.getElementById('s-moves').textContent = moves;
+  const k=`${diff}-${level}`;
+  document.getElementById('s-best').textContent  = best[k] ?? '—';
+}
+
+/* ============================================================
+   KEYBOARD
+============================================================ */
+document.addEventListener('keydown', e => {
+  if (e.key==='z'||e.key==='Z') document.getElementById('btn-undo').click();
+  if (e.key==='Escape') { sel=null; render(); }
+});
+
+/* ============================================================
+   BOOT
+============================================================ */
+(function boot() {
+  const p = load();
+  if (p) {
+    best = p.best || {};
+    setDiff(p.diff || 'medium');
+  }
+  refreshContinueBtn();
+  // Start on landing — game only starts when user taps a button
+})();
 </script>
 </body>
 </html>
