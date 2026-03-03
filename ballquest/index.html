@@ -333,6 +333,48 @@
             color: var(--accent);
             font-size: 0.85em;
         }
+
+        /* ── Back button ─────────────────────────────── */
+        .back-btn {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(0.65rem, 2vw, 0.85rem);
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid var(--accent);
+            border-radius: 30px;
+            padding: 7px 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 16px rgba(0,245,255,0.25);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            z-index: 20;
+        }
+        .back-btn:hover {
+            background: rgba(0,245,255,0.15);
+            box-shadow: 0 0 28px rgba(0,245,255,0.5);
+            transform: translateX(-3px);
+        }
+
+        /* ── Privacy link ────────────────────────────── */
+        .privacy-link {
+            position: absolute;
+            bottom: 18px;
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(0.6rem, 1.8vw, 0.75rem);
+            color: rgba(255,255,255,0.35);
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            transition: color 0.3s ease;
+            z-index: 20;
+        }
+        .privacy-link:hover {
+            color: rgba(0,245,255,0.8);
+        }
     </style>
 </head>
 <body>
@@ -340,6 +382,9 @@
 
 <!-- ── MENU SCREEN ─────────────────────────────────── -->
 <div class="screen menu-screen active" id="menuScreen">
+
+    <a href="#" class="back-btn">← Games Network</a>
+
     <h1 class="game-title">BALL QUEST</h1>
     <div class="subtitle">🚀 The Ultimate Jump Adventure</div>
     <div class="menu-buttons">
@@ -347,6 +392,9 @@
         <button class="menu-btn" onclick="showInstructions()">🎮 CONTROLS</button>
         <button class="menu-btn" onclick="showHighScore()">🏆 RECORD: <span id="menuHighScore">0</span>m</button>
     </div>
+
+    <a href="pp.txt" class="privacy-link" target="_blank">Privacy Policy</a>
+
 </div>
 
 <!-- ── GAME SCREEN ─────────────────────────────────── -->
