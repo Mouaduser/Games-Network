@@ -162,6 +162,17 @@ body{display:flex;align-items:center;justify-content:center;}
 .ov-btn:hover{background:var(--line);color:var(--bg)}.ov-btn:active{transform:scale(0.96)}
 .ov-btn.p{background:var(--red);border-color:var(--red);color:#fff}
 .ov-btn.p:hover{background:#b81818;border-color:#b81818}
+/* Games Network button */
+.gn-btn{
+  position:absolute;top:14px;left:16px;
+  font-family:'Caveat',cursive;font-size:clamp(12px,2vw,15px);font-weight:700;
+  padding:5px 14px;border-radius:99px;
+  border:2px solid rgba(42,37,32,0.35);
+  background:rgba(42,37,32,0.07);
+  color:var(--line);text-decoration:none;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+  display:flex;align-items:center;gap:5px}
+.gn-btn:hover{background:var(--line);color:var(--bg);border-color:var(--line)}
 
 /* ── LEVEL GRID ── */
 .lvl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
@@ -251,6 +262,7 @@ body{display:flex;align-items:center;justify-content:center;}
 
 <!-- START -->
 <div class="ov show" id="ovStart">
+  <a href="../index.html" class="gn-btn" title="Games Network">🎮 Games Network</a>
   <div class="ov-big">🚗</div>
   <div class="ov-big" style="margin-top:-14px">Hill Racer</div>
   <div class="ov-sub">🔴 Gas · 🔵 Jump/Stabilise · ↺ Tilt in air<br>Flip over = 💥 Game Over!</div>
@@ -570,6 +582,114 @@ const LEVELS=[
    length:7500,gravity:1.32,
    terrain:[[0,0],[0.02,0],[0.05,-115],[0.08,100],[0.12,-165],[0.16,135],[0.2,-175],[0.25,145],[0.3,-160],[0.35,130],[0.4,-170],[0.45,140],[0.5,-155],[0.55,125],[0.6,-167],[0.65,137],[0.7,-150],[0.75,120],[0.8,-140],[0.85,110],[0.9,-105],[0.95,72],[1,0]],
    starT:[38,58,80],coins:28,sky:'#040408',ground:'rgba(20,20,60,0.40)',theme:'abyss',dark:true},
+
+  // 28 — Autumn Valley (Easy)
+  {id:27,name:'Autumn Valley',icon:'🍂',diff:'E',diffName:'Easy',
+   length:3100,gravity:0.95,
+   terrain:[[0,0],[0.07,0],[0.15,-28],[0.23,18],[0.31,-44],[0.39,22],[0.47,-36],[0.55,26],[0.63,-40],[0.71,18],[0.79,-32],[0.87,12],[0.94,-20],[1,0]],
+   starT:[12,17,24],coins:8,sky:'#e8c878',ground:'rgba(180,120,40,0.28)',theme:'meadow'},
+
+  // 29 — Rainy Roads (Easy)
+  {id:28,name:'Rainy Roads',icon:'🌧️',diff:'E',diffName:'Easy',
+   length:3300,gravity:0.97,
+   terrain:[[0,0],[0.08,0],[0.16,-18],[0.24,28],[0.32,-38],[0.4,22],[0.48,-30],[0.56,20],[0.64,-34],[0.72,18],[0.8,-26],[0.88,14],[0.95,-16],[1,0]],
+   starT:[12,18,25],coins:7,sky:'#8898b0',ground:'rgba(80,100,120,0.28)',theme:'water'},
+
+  // 30 — Cactus Land (Easy-Med)
+  {id:29,name:'Cactus Land',icon:'🌵',diff:'E',diffName:'Easy',
+   length:3700,gravity:1.01,
+   terrain:[[0,0],[0.06,0],[0.12,-22],[0.19,52],[0.26,-18],[0.33,-60],[0.4,72],[0.47,-22],[0.54,66],[0.61,-28],[0.68,54],[0.76,-18],[0.84,38],[0.92,-12],[1,0]],
+   starT:[14,21,29],coins:9,sky:'#f0d098',ground:'rgba(200,150,50,0.26)',theme:'desert'},
+
+  // 31 — Mushroom Kingdom (Medium)
+  {id:30,name:'Mushroom Fields',icon:'🍄',diff:'M',diffName:'Medium',
+   length:4300,gravity:1.04,
+   terrain:[[0,0],[0.05,0],[0.1,-50],[0.17,35],[0.23,-78],[0.3,55],[0.37,-88],[0.44,60],[0.51,-72],[0.58,48],[0.65,-80],[0.72,55],[0.79,-60],[0.86,38],[0.93,-28],[1,0]],
+   starT:[18,26,36],coins:12,sky:'#f0c8e0',ground:'rgba(160,80,140,0.24)',theme:'spring'},
+
+  // 32 — Icy Peaks (Medium, icy)
+  {id:31,name:'Icy Peaks',icon:'🏔️',diff:'M',diffName:'Medium',
+   length:4500,gravity:1.03,icy:true,
+   terrain:[[0,0],[0.05,0],[0.1,-58],[0.17,42],[0.24,-82],[0.31,62],[0.38,-92],[0.45,68],[0.52,-78],[0.59,55],[0.66,-70],[0.73,48],[0.8,-55],[0.87,32],[0.94,-22],[1,0]],
+   starT:[19,28,39],coins:12,sky:'#d8ecff',ground:'rgba(180,220,255,0.38)',theme:'ice'},
+
+  // 33 — Sunset Cliffs (Medium)
+  {id:32,name:'Sunset Cliffs',icon:'🌅',diff:'M',diffName:'Medium',
+   length:4700,gravity:1.07,
+   terrain:[[0,0],[0.04,0],[0.09,-68],[0.15,30],[0.21,-92],[0.28,58],[0.35,-82],[0.42,48],[0.49,-95],[0.56,62],[0.63,-78],[0.7,42],[0.77,-68],[0.84,30],[0.91,-42],[0.97,16],[1,0]],
+   starT:[20,30,42],coins:13,sky:'#f08840',ground:'rgba(200,100,50,0.26)',theme:'desert'},
+
+  // 34 — Toxic Swamp (Hard)
+  {id:33,name:'Toxic Swamp',icon:'☣️',diff:'H',diffName:'Hard',
+   length:5100,gravity:1.13,
+   terrain:[[0,0],[0.04,0],[0.08,-72],[0.13,58],[0.18,-105],[0.24,82],[0.3,-118],[0.36,88],[0.42,-98],[0.48,72],[0.54,-108],[0.6,82],[0.66,-92],[0.72,62],[0.78,-78],[0.84,52],[0.9,-62],[0.96,32],[1,0]],
+   starT:[23,34,47],coins:15,sky:'#182010',ground:'rgba(60,120,20,0.38)',theme:'swamp',dark:true},
+
+  // 35 — Neon Jungle (Hard)
+  {id:34,name:'Neon Jungle',icon:'🌴',diff:'H',diffName:'Hard',
+   length:5300,gravity:1.11,
+   terrain:[[0,0],[0.04,0],[0.08,-68],[0.13,52],[0.18,-98],[0.24,78],[0.3,-112],[0.36,84],[0.42,-95],[0.48,70],[0.54,-105],[0.6,78],[0.66,-88],[0.72,60],[0.78,-75],[0.84,50],[0.9,-58],[0.96,28],[1,0]],
+   starT:[24,36,50],coins:16,sky:'#041808',ground:'rgba(0,180,60,0.22)',theme:'jungle',dark:true},
+
+  // 36 — Black Hole (Hard, very low gravity)
+  {id:35,name:'Black Hole',icon:'🌑',diff:'H',diffName:'Hard',
+   length:5500,gravity:0.35,
+   terrain:[[0,0],[0.04,0],[0.09,-95],[0.15,82],[0.21,-130],[0.28,105],[0.34,-145],[0.41,112],[0.47,-120],[0.54,96],[0.6,-135],[0.67,108],[0.73,-115],[0.8,90],[0.87,-100],[0.94,65],[1,0]],
+   starT:[22,33,46],coins:17,sky:'#000008',ground:'rgba(40,0,80,0.40)',theme:'space',dark:true},
+
+  // 37 — Magma Core (Extreme)
+  {id:36,name:'Magma Core',icon:'🫠',diff:'X',diffName:'Extreme',
+   length:5900,gravity:1.20,
+   terrain:[[0,0],[0.03,0],[0.07,-98],[0.11,84],[0.15,-145],[0.2,115],[0.25,-158],[0.31,125],[0.37,-138],[0.43,108],[0.49,-150],[0.55,120],[0.61,-130],[0.67,100],[0.73,-142],[0.79,112],[0.85,-118],[0.91,82],[0.96,-58],[1,0]],
+   starT:[29,44,62],coins:20,sky:'#120204',ground:'rgba(240,60,10,0.34)',theme:'volcano',dark:true},
+
+  // 38 — Storm Eye (Extreme)
+  {id:37,name:'Storm Eye',icon:'🌩️',diff:'X',diffName:'Extreme',
+   length:6100,gravity:1.23,
+   terrain:[[0,0],[0.03,0],[0.06,-102],[0.10,88],[0.14,-150],[0.19,120],[0.24,-162],[0.30,132],[0.36,-142],[0.42,112],[0.48,-155],[0.54,125],[0.60,-135],[0.66,105],[0.72,-148],[0.78,118],[0.84,-122],[0.90,88],[0.95,-62],[1,0]],
+   starT:[31,47,65],coins:21,sky:'#08101c',ground:'rgba(80,100,180,0.30)',theme:'storm',dark:true},
+
+  // 39 — Void Runner (Extreme, micro gravity)
+  {id:38,name:'Void Runner',icon:'🚀',diff:'X',diffName:'Extreme',
+   length:6300,gravity:0.30,
+   terrain:[[0,0],[0.03,0],[0.07,-120],[0.12,100],[0.17,-162],[0.23,130],[0.29,-175],[0.35,142],[0.41,-155],[0.47,122],[0.53,-168],[0.59,135],[0.65,-148],[0.71,118],[0.77,-160],[0.83,128],[0.89,-118],[0.95,80],[1,0]],
+   starT:[27,42,58],coins:22,sky:'#02020c',ground:'rgba(60,80,180,0.32)',theme:'space',dark:true},
+
+  // 40 — Omega Peak (Master)
+  {id:39,name:'Omega Peak',icon:'⛰️',diff:'X',diffName:'Master',
+   length:7200,gravity:1.29,
+   terrain:[[0,0],[0.02,0],[0.05,-108],[0.09,94],[0.13,-160],[0.18,128],[0.23,-172],[0.28,142],[0.33,-155],[0.38,125],[0.43,-168],[0.48,138],[0.53,-152],[0.58,122],[0.63,-165],[0.68,135],[0.73,-148],[0.78,118],[0.83,-138],[0.88,108],[0.93,-98],[0.97,64],[1,0]],
+   starT:[37,56,78],coins:27,sky:'#0a0810',ground:'rgba(80,60,120,0.32)',theme:'abyss',dark:true},
+
+  // 41 — Supernova (Master)
+  {id:40,name:'Supernova',icon:'💥',diff:'X',diffName:'Master',
+   length:7400,gravity:1.31,
+   terrain:[[0,0],[0.02,0],[0.05,-112],[0.09,96],[0.13,-162],[0.17,130],[0.22,-174],[0.27,144],[0.32,-158],[0.37,128],[0.42,-170],[0.47,140],[0.52,-155],[0.57,124],[0.62,-167],[0.67,138],[0.72,-150],[0.77,120],[0.82,-142],[0.87,110],[0.92,-102],[0.97,68],[1,0]],
+   starT:[38,58,82],coins:28,sky:'#180808',ground:'rgba(220,60,20,0.30)',theme:'inferno',dark:true},
+
+  // 42 — Dimension X (Master)
+  {id:41,name:'Dimension X',icon:'🌀',diff:'X',diffName:'Master',
+   length:7700,gravity:1.33,
+   terrain:[[0,0],[0.02,0],[0.05,-115],[0.08,100],[0.12,-165],[0.16,135],[0.20,-178],[0.25,148],[0.30,-162],[0.35,132],[0.40,-174],[0.45,144],[0.50,-158],[0.55,128],[0.60,-170],[0.65,140],[0.70,-153],[0.75,122],[0.80,-145],[0.85,112],[0.90,-108],[0.95,74],[1,0]],
+   starT:[40,62,86],coins:30,sky:'#080418',ground:'rgba(120,0,200,0.28)',theme:'neon',dark:true},
+
+  // 43 — Titan's Gate (Master)
+  {id:42,name:"Titan's Gate",icon:'🗿',diff:'X',diffName:'Master',
+   length:8000,gravity:1.34,
+   terrain:[[0,0],[0.02,0],[0.04,-118],[0.08,104],[0.12,-168],[0.16,138],[0.20,-180],[0.25,150],[0.30,-164],[0.35,134],[0.40,-176],[0.45,146],[0.50,-160],[0.55,130],[0.60,-172],[0.65,142],[0.70,-156],[0.75,124],[0.80,-148],[0.85,114],[0.90,-110],[0.95,76],[1,0]],
+   starT:[42,64,90],coins:32,sky:'#0c0808',ground:'rgba(100,80,60,0.34)',theme:'epic',dark:true},
+
+  // 44 — Final Countdown (Master)
+  {id:43,name:'Final Countdown',icon:'🎯',diff:'X',diffName:'Master',
+   length:8200,gravity:1.35,
+   terrain:[[0,0],[0.02,0],[0.04,-120],[0.08,106],[0.12,-170],[0.16,140],[0.20,-182],[0.25,152],[0.30,-166],[0.35,136],[0.40,-178],[0.45,148],[0.50,-162],[0.55,132],[0.60,-174],[0.65,144],[0.70,-158],[0.75,126],[0.80,-150],[0.85,116],[0.90,-112],[0.95,78],[1,0]],
+   starT:[44,68,95],coins:34,sky:'#040408',ground:'rgba(40,40,80,0.40)',theme:'thunder',dark:true},
+
+  // 45 — LEGEND (Ultimate)
+  {id:44,name:'LEGEND',icon:'👑',diff:'X',diffName:'LEGEND',
+   length:9000,gravity:1.36,
+   terrain:[[0,0],[0.02,0],[0.04,-122],[0.07,108],[0.11,-172],[0.15,142],[0.19,-185],[0.24,155],[0.29,-168],[0.34,138],[0.39,-180],[0.44,150],[0.49,-164],[0.54,134],[0.59,-176],[0.64,146],[0.69,-160],[0.74,128],[0.79,-152],[0.84,118],[0.89,-114],[0.94,80],[0.97,-40],[1,0]],
+   starT:[48,74,105],coins:36,sky:'#080808',ground:'rgba(180,160,20,0.30)',theme:'epic',dark:true},
 ];
 
 // ═══════════════════════════════════════════════════
